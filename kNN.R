@@ -16,7 +16,7 @@ kNN <- function(xl,z,k) {   #функция выбора класса метод
   orderedXl <- sortObjbyDist(xl,z)
   n <- dim(orderedXl)[2]-1
   classes <- orderedXl[1:k,n+1]   #получает список видов для ближайших k объектов
-  counts <- table(classes)   #строить из них таблицу количество цветов каждого вида
+  counts <- table(classes)   #строит из них таблицу количества цветов каждого вида
   class <- names(which.max(counts))   #выбирает тот вид, у которого больше всего представителей
   return (class)
 }
@@ -58,7 +58,7 @@ main <- function() {
   xname <- titles[[1]][parOne]   #названия для подписей на карте
   yname <- titles[[1]][parTwo]
   xl <- iris[ ,c(parOne,parTwo,5)]   #построение выборки
-  xMin <- xl[which.min(xl[ ,1]),1]   #нахождение минимального и максимальнго иксов
+  xMin <- xl[which.min(xl[ ,1]),1]   #нахождение минимального и максимального иксов
   xMax <- xl[which.max(xl[ ,1]),1]
   X <- seq(from=xMin,to=xMax,by=0.1)   #список всех иксов на карте
   xLen <- length(X)
