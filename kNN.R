@@ -60,11 +60,11 @@ main <- function() {
   xl <- iris[ ,c(parOne,parTwo,5)]   #построение выборки
   xMin <- xl[which.min(xl[ ,1]),1]   #нахождение минимального и максимального иксов
   xMax <- xl[which.max(xl[ ,1]),1]
-  X <- seq(from=xMin,to=xMax,by=0.1)   #список всех иксов на карте
+  X <- seq(from=xMin,to=xMax,by=0.05)   #список всех иксов на карте
   xLen <- length(X)
   yMin <- xl[which.min(xl[ ,2]),2]   #нахождение минимального и максимального игриков
   yMax <- xl[which.max(xl[ ,2]),2]
-  Y <- seq(from=yMin,to=yMax,by=0.1)   #список всех игриков на карте
+  Y <- seq(from=yMin,to=yMax,by=0.05)   #список всех игриков на карте
   yLen <-length(Y)
   flowers <- matrix(NA,xLen,yLen)
   positions <- matrix(NA,xLen*yLen,2)
@@ -80,6 +80,6 @@ main <- function() {
     }
   }
   plot(positions,pch=1,bg="white",col=colors[flowers],asp=1,main="Map of kNN for optimal K",xlab=xname,ylab=yname)
-  points(iris[ ,c(3,4)],pch=21,bg=colors[iris$Species],col=colors[iris$Species],asp=1)
+  points(iris[ ,c(parOne,parTwo)],pch=21,bg=colors[iris$Species],col=colors[iris$Species],asp=1)
 }
 main()
