@@ -7,9 +7,10 @@
 Метрические алгоритмы относятся к методам ленивого обучения (lazy learning), а также к методам рассуждения по прецедентам (case-based reasoning, CBR).
 
 Метод kNN или Метод k ближайших соседей находит k ближайших (т.е. с наименьшим значением функции расстояния) соседей в пространстве признаков и присваивает точку *x* к тому классу, объектов которого больше среди них, т.е. 
+
 <img src="https://render.githubusercontent.com/render/math?math=\omega (i, u) = [i \le k]">
 
-$ \alpha (u;{X}^{l},k)=\arg\max_{y\in Y}\sum_{i=1}^{k}[{y}_{u}^{(i)} =y] $
+<img src="https://render.githubusercontent.com/render/math?math=\alpha (u;{X}^{l},k)=\arg\max_{y\in Y}\sum_{i=1}^{k}[{y}_{u}^{(i)} =y]">
 
 ### Алгоритм
 
