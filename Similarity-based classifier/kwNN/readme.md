@@ -60,7 +60,7 @@ kwNN <- function(xl,z,optK,optQ) {
 
 ![kwNN](kwNN.png)
 
-График поиска оптимальных k и q с помощью метода LOO
+График ошибок для пар (k,q), полученный с помощью метода LOO
 
 ![kwNNLOO](kwNNLOO.png)
 
