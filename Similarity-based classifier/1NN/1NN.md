@@ -7,13 +7,10 @@
 Метрические алгоритмы относятся к методам ленивого обучения (lazy learning), а также к методам рассуждения по прецедентам (case-based reasoning, CBR).
 
 Метод 1NN или Метод ближайшего соседа находит ближайшего (т.е. с наименьшим значением функции расстояния) соседа в пространстве признаков и присваивает точку *x* к классу этого соседа, т.е. 
-$$
-\omega (i, u) = [i=1]
-$$
 
-$$
-\alpha (u, X^l)=y_u^i
-$$
+<img src="https://render.githubusercontent.com/render/math?math=\omega (i, u) = [i=1]">
+
+<img src="https://render.githubusercontent.com/render/math?math=\alpha (u, X^l)=y_u^i">
 
 ### Алгоритм
 
