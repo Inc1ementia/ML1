@@ -10,7 +10,7 @@
 
 <img src="https://render.githubusercontent.com/render/math?math=\omega (i, u) = [i \le k]">
 
-<img src="https://render.githubusercontent.com/render/math?math=\alpha (u;{X}^{l},k)=\arg\max_{y\in Y}\sum_{i=1}^{k}[{y}_{u}^{(i)} =y]">
+<img src="https://render.githubusercontent.com/render/math?math=%5Calpha%20(u%3B%7BX%7D%5E%7Bl%7D%2Ck)%3D%5Carg%5Cmax_%7By%5Cin%20Y%7D%5Csum_%7Bi%3D1%7D%5E%7Bk%7D%5B%7By%7D_%7Bu%7D%5E%7B(i)%7D%20%3Dy%5D">
 
 ### Алгоритм
 
