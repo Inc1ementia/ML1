@@ -59,7 +59,7 @@ determkwNN_LOO <- function(xl,qCount) {
       classes <- c("setosa"=0,"versicolor"=0,"virginica"=0)
       for (k in 1:maxK) {    #перебираем значение k
         classes[orderedXl[k,n+1]] <- classes[orderedXl[k,n+1]]+qPow[k,q]  #добавляем k-ый элемент
-        class <- names(which.max(classes))  #выбирает тот вид, у которого вес класса больше
+        class <- names(which.max(classes))  #выбирает тот класс, у которого вес больше
         if (class!=obj[n+1]) {   #если произошла ошибка классификации
           errorForK[k,q]=errorForK[k,q]+1/l   #то увеличиваем для данной пары (k,q) значение ошибки
         }
@@ -81,7 +81,7 @@ determkwNN_LOO <- function(xl,qCount) {
 }
 
 
-algoShow <- function(z) {
+algoShow <- function(z) { #решение для отдельной точки, пример работы алгоритма
   k <- optimalK
   q <- optimalQ
   xl <- iris[ ,c(parOne,parTwo,5)]   #построение выборки
