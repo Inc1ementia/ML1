@@ -43,7 +43,7 @@ kNN <- function(xl,z,k) {   #функция выбора класса метод
   orderedXl <- sortObjbyDist(xl,z)
   n <- dim(orderedXl)[2]-1
   classes <- orderedXl[1:k,n+1]   #получает список классов для ближайших k объектов
-  counts <- table(classes)   #строит из них таблицу количества цветов каждого вида
+  counts <- table(classes)   #строит из них таблицу количества цветов каждого класса
   class <- names(which.max(counts))   #выбирает тот класс, у которого больше всего представителей
   return (class)
 }
