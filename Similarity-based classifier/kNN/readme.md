@@ -39,7 +39,7 @@ sortObjbyDist <- function(xl,z,metricFunc=eucDist) {  #функция сорти
 }
 
 
-kNN <- function(xl,z,k) {   #функция выбора класса методом kNN
+kNN <- function(xl,z,k) {   #функция выбора класса методов kNN
   orderedXl <- sortObjbyDist(xl,z)
   n <- dim(orderedXl)[2]-1
   classes <- orderedXl[1:k,n+1]   #получает список классов для ближайших k объектов
