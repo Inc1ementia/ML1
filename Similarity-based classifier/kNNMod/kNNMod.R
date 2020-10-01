@@ -24,7 +24,7 @@ sortObjbyDist <- function(xl,z,metricFunc=eucDist) {  #функция сорти
 }
 
 
-meanDist <- function(xl,z,k,metricFunc=eucDist) {   #
+meanDist <- function(xl,z,k,metricFunc=eucDist) {   #сортировка массива расстояний 
   l <- dim(xl)[1]
   n <- dim(xl)[2]-1
   dist <- matrix(NA,l,2)
@@ -42,7 +42,7 @@ subclass <- function(xl,type) {   #выбор определённого кла�
 }
 
 
-kNNMod <- function(xl,z,k) {   #функция выбора класса методов kNN
+kNNMod <- function(xl,z,k) {   #функция выбора класса методом kNN
   types <- c("setosa","versicolor","virginica")
   n <- dim(xl)[2]-1
   classDist <- c(0,0,0)
@@ -88,7 +88,8 @@ determKNNMod_LOO <- function(xl) {   #определение оптимальн�
     LOO[k, ] <- c(k,errorForK[k])   #строим массив пар (номер, число ошибок)
   }
   optK <- which.min(errorForK)
-  plot(LOO,pch=1,type="l",col="blue",xlab="k",ylab="LOO(k)",main="Find optimal value of k for kNNMod with LOO-algo")
+  message <- paste0("Find optimal value of k for kNNMod with LOO-algo, k = ",optK,", error = ",(LOO[optK,2]*l),"/",l," (",round(LOO[optK,2],3),")")
+  plot(LOO,pch=1,type="l",col="blue",xlab="k",ylab="LOO(k)",main=message)
   points(optK,LOO[optK,2],pch=21,bg="red",col="red")
   res <- paste("optK=",optK)   #готовит подпись для графика
   text(optK+1.3,LOO[optK,2]+0.001,labels=res)
@@ -126,8 +127,10 @@ algoShow <- function(z) {
 
 
 main <- function(runLOO=FALSE,runMap=FALSE) {
+  ptm <- proc.time()
   errorValue <- 0.04
   xl <- iris[ ,c(parOne,parTwo,5)]   #построение выборки
+  l <- dim(xl)[1]
   xMin <- xl[which.min(xl[ ,1]),1]   #нахождение минимального и максимального иксов
   xMax <- xl[which.max(xl[ ,1]),1]
   X <- seq(from=xMin,to=xMax,by=0.05)   #список всех иксов на карте
@@ -138,10 +141,14 @@ main <- function(runLOO=FALSE,runMap=FALSE) {
   yLen <-length(Y)
   if (runLOO==TRUE) {
     optimals <- determKNNMod_LOO(xl)   #находим оптимальное k
+    print("LOO algorithm")
+    btm <- proc.time()
+    print(btm-ptm)
     optimalK <<- optimals[1]
     errorValue <- optimals[2]
   }
   if (runMap==TRUE) {
+    ptm <- proc.time()
     flowers <- matrix(NA,xLen,yLen)
     positions <- matrix(NA,xLen*yLen,2)
     cnt <- 1
@@ -154,11 +161,15 @@ main <- function(runLOO=FALSE,runMap=FALSE) {
         cnt <- cnt+1
       }
     }
-    message <- paste("Map of kNNMod for optimal K =",optimalK,"with error =",errorValue)
+    message <- paste0("Map of kNNMod for optimal K = ",optimalK," with error = ",(errorValue*l),"/",l," (",round(errorValue,3),")")
     plot(positions,pch=1,bg="white",col=colors[flowers],asp=1,main=message,xlab=xname,ylab=yname)
     points(iris[ ,c(3,4)],pch=21,bg=colors[iris$Species],col=colors[iris$Species],asp=1)
+    print("Map build")
+    btm <- proc.time()
+    print(btm-ptm)
   }
 }
+
 
 main(FALSE,FALSE)	#посчитать отдельно LOO и полную карту
 algoShow(c(3.8,2.2))	#показать классификацию случайной точки, подсветив её соседей
