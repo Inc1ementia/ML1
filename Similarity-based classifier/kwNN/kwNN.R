@@ -1,10 +1,10 @@
-library(lattice)
+library(scatterplot3d)
 colors <- c("setosa"="pink1","versicolor"="gold","virginica"="skyblue1")
 qPow <<- numeric()
-optimalK <<- 3
-optimalQ <<- 26
-maxQ <- 0.9
-minQ <- 0.1
+optimalK <<- 6
+optimalQ <<- -1
+maxQ <- 1.0
+minQ <- 0.05
 parOne <- 3   #чтобы можно было легко поменять параметры
 parTwo <- 4
 titles <- dimnames(iris)[2]
@@ -22,17 +22,17 @@ sortObjbyDist <- function(xl,z,metricFunc=eucDist) {  #функция сорти
   n <- dim(xl)[2]-1
   dist <- matrix(NA,l,2)
   for (i in 1:l) {
-    dist[i, ] <- c(i, metricFunc(xl[i,1:n],z))  #создание списка пар (номер объекта, расстояние до z)
+    dist[i, ] <- c(i,metricFunc(xl[i,1:n],z))  #создание списка пар (номер объекта, расстояние до z)
   }
-  orderedXl <- xl[order(dist[ ,2]), ]   #сортировка списка объектов
+  orderedXl <- xl[order(dist[ ,2]), ]   #сортировка списка расстояний
   return (orderedXl)
 }
 
 
 kwNN <- function(xl,z,optK,optQ) {
-  orderedXl <- sortObjbyDist(xl,z)
+  orderedXl <- sortObjbyDist(xl,z)   #получает отсортированный список объектов
   n <- dim(orderedXl)[2]
-  classes <- orderedXl[1:optK,n]   #получает список классов для ближайших k объектов
+  classes <- orderedXl[1:optK,n]   #выбирает классы ближайших k объектов
   counts <- c("setosa"=0.0,"versicolor"=0.0,"virginica"=0.0)
   for (i in 1:optK) {
     counts[classes[i]] <- counts[classes[i]]+qPow[i,optQ];
@@ -42,13 +42,12 @@ kwNN <- function(xl,z,optK,optQ) {
 }
 
 
-determkwNN_LOO <- function(xl,qCount) {
+determkwNN_LOO <- function(xl,Q) {
   l <- dim(xl)[1]
   n <- dim(xl)[2]-1
   maxK <- l-1
-  X <- c(1:maxK)
-  Y <- seq(qPow[1,1],qPow[1,qCount],qPow[1,2]-qPow[1,1])
-  errorForK <- matrix(0.0,maxK,qCount,dimnames=list(X,Y))
+  qCount <- length(Q)
+  errorForK <- matrix(0.0,maxK,qCount,dimnames=list(c(1:maxK),Q))
   for (i in 1:l) {  #перебираем каждый элемент
     obj <- xl[i, ]
     newXl <- xl[-i, ]  #убираем его из выборки
@@ -59,14 +58,13 @@ determkwNN_LOO <- function(xl,qCount) {
       classes <- c("setosa"=0,"versicolor"=0,"virginica"=0)
       for (k in 1:maxK) {    #перебираем значение k
         classes[orderedXl[k,n+1]] <- classes[orderedXl[k,n+1]]+qPow[k,q]  #добавляем k-ый элемент
-        class <- names(which.max(classes))  #выбирает тот класс, у которого вес больше
+        class <- names(which.max(classes))  #выбирает тот вид, у которого вес класса больше
         if (class!=obj[n+1]) {   #если произошла ошибка классификации
           errorForK[k,q]=errorForK[k,q]+1/l   #то увеличиваем для данной пары (k,q) значение ошибки
         }
       }
     }
   }
-  print(levelplot(errorForK,col.regions=heat.colors(100),main="LOO(k,q) level plot",xlab="k",ylab="q",xlim=seq(1,maxK,10),asp=1))
   optK <- 1
   optQ <- 1
   for (k in 1:maxK) {
@@ -77,11 +75,62 @@ determkwNN_LOO <- function(xl,qCount) {
       }
     }
   }
+  Table <- matrix(NA,maxK*qCount,3)
+  graphPoints <- matrix(NA,maxK*qCount,3)
+  for (i in 1:maxK) {
+    pos <- (i-1)*qCount
+    for (j in 1:qCount) {
+      Table[pos+j,1] <- i
+      Table[pos+j,2] <- Q[j]
+      Table[pos+j,3] <- errorForK[i,j]
+    }
+  }
+  message <- paste0("Find optimal value of k for kNNMod with LOO-algo, k = ",optK,", error = ",(LOO[optK,2]*l),"/",l," (",round(LOO[optK,2],3),")")
+  LOO <- scatterplot3d(
+    x = Table[ ,1],
+    y = Table[ ,2],
+    z = Table[ ,3],
+    angle=100,
+    col.axis="blue",
+    col.grid="lightblue",
+    type = "n",
+    xlab = "k",
+    ylab = "q",
+    zlab = "LOO(k,q)",
+    main = message
+  )
+  for (i in 1:qCount) {
+    for (j in 1:maxK) {
+      for (k in 1:qCount) {
+        graphPoints[(j-1)*qCount+k, ] <- c(j,Q[i],errorForK[j,i])
+      }
+      LOO$points3d(graphPoints[ ,1],graphPoints[ ,2],graphPoints[ ,3],type="l")
+    }
+  }
+  for (i in 1:maxK) {
+    for (k in 1:qCount) {
+      graphPoints[k, ] <- c(i,Q[k],errorForK[i,k])
+    }
+    for (j in 2:maxK) {
+      for (k in 1:qCount) {
+        graphPoints[(j-1)*qCount+k, ] <- graphPoints[qCount, ]
+      }
+    }
+    LOO$points3d(graphPoints[ ,1],graphPoints[ ,2],graphPoints[ ,3],type="l")
+  }
+  for (i in 1:maxK) {
+    for (j in 1:qCount) {
+      graphPoints[(i-1)*qCount+j, ] <- c(optK,Q[optQ],errorForK[optK,optQ])
+    }
+  }
+  LOO$points3d(graphPoints[ ,1],graphPoints[ ,2],graphPoints[ ,3],pch=20,col="red");
+  message <- paste("k =",optK,", q =",Q[optQ])
+  text(LOO$xyz.convert(optK,Q[optQ],errorForK[optK,optQ]+0.05),labels=message,col="red");
   return (c(optK,optQ,errorForK[optK,optQ]))
 }
 
 
-algoShow <- function(z) { #решение для отдельной точки, пример работы алгоритма
+algoShow <- function(z) {
   k <- optimalK
   q <- optimalQ
   xl <- iris[ ,c(parOne,parTwo,5)]   #построение выборки
@@ -104,10 +153,12 @@ algoShow <- function(z) { #решение для отдельной точки, 
 
 
 main <- function(runLOO=FALSE,runMap=FALSE) {
-  errorValue <- 0.04
-  optQ <- 0.62
+  errorValue <- 1.0/30.0
+  optQ <- 1.0
+  ptm <- proc.time()
   xl <- iris[ ,c(parOne,parTwo,5)]   #построение выборки
-  xMin <- xl[which.min(xl[ ,1]),1]   #нахождение минимального и максимальнго иксов
+  l <- dim(xl)[1]
+  xMin <- xl[which.min(xl[ ,1]),1]   #нахождение минимального и максимального иксов
   xMax <- xl[which.max(xl[ ,1]),1]
   X <- seq(from=xMin,to=xMax,by=0.05)   #список всех иксов на карте
   xLen <- length(X)
@@ -115,24 +166,29 @@ main <- function(runLOO=FALSE,runMap=FALSE) {
   yMax <- xl[which.max(xl[ ,2]),2]
   Y <- seq(from=yMin,to=yMax,by=0.05)   #список всех игриков на карте
   yLen <-length(Y)
-  qCount <- 41
-  l <- dim(xl)[1]-1
+  Q <- seq(from=minQ,to=maxQ,by=0.05)  #список всех значений веса
+  qCount <- length(Q)
   qPow <<- matrix(NA,l,qCount)
   for (i in 1:qCount) {
-    q <- (maxQ-minQ)/(qCount-1)*(i-1)+minQ
+    q <- Q[i]
+    if (q<=1.0) optimalQ <<- i
     qPow[1,i] <<- q
     for (j in 2:l) {
       qPow[j,i] <<- qPow[j-1,i]*q
     }
   }
   if (runLOO==TRUE) {
-    optimals <- determkwNN_LOO(xl,qCount)
+    optimals <- determkwNN_LOO(xl,Q)
+    print("LOO algorithm")
+    btm <- proc.time()
+    print(btm-ptm)
     optimalK <<- optimals[1]
     optimalQ <<- optimals[2]
     errorValue <- optimals[3]
-    optQ <- (maxQ-minQ)/(qCount-1)*(optimalQ-1)+minQ
+    optQ <- Q[optimalQ]
   }
   if (runMap==TRUE) {
+    ptm <- proc.time()
     flowers <- matrix(NA,xLen,yLen)
     positions <- matrix(NA,xLen*yLen,2)
     cnt <- 1
@@ -141,14 +197,19 @@ main <- function(runLOO=FALSE,runMap=FALSE) {
       for (j in 1:xLen) {
         z <- c(X[j],Y[i])
         positions[cnt, ] <- z   #запоминаем координаты объекта
-        flowers[j,i] <- kwNN(xl,z,optimalK,optimalQ)   #находим предположительный класс методом kNN
+        flowers[j,i] <- kwNN(xl,z,optimalK,optimalQ)   #находим предположительный класс методом kwNN
         cnt <- cnt+1
       }
     }
-    message <- paste("Map of kwNN for K =",optimalK,"and Q =",optQ,"with error =",errorValue)
+    message <- paste0("Map of kwNN for K = ",optimalK," and Q = ",optQ," with error = ",(errorValue*l),"/",l," (",round(errorValue,3),")")
     plot(positions,pch=1,bg="white",col=colors[flowers],asp=1,main=message,xlab=xname,ylab=yname)
     points(iris[ ,c(parOne,parTwo)],pch=21,bg=colors[iris$Species],col=colors[iris$Species],asp=1)
+    print("Map build")
+    btm <- proc.time()
+    print(btm-ptm)
   }
 }
+
+
 main(FALSE,FALSE)	#посчитать отдельно LOO и полную карту
 algoShow(c(5.2,1.3))	#показать классификацию случайной точки, подсветив её соседей
