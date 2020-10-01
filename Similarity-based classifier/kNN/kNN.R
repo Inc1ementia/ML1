@@ -27,9 +27,9 @@ sortObjbyDist <- function(xl,z,metricFunc=eucDist) {  #функция сорти
 kNN <- function(xl,z,k) {   #функция выбора класса методов kNN
   orderedXl <- sortObjbyDist(xl,z)
   n <- dim(orderedXl)[2]-1
-  classes <- orderedXl[1:k,n+1]   #получает список видов для ближайших k объектов
-  counts <- table(classes)   #строить из них таблицу количество цветов каждого вида
-  class <- names(which.max(counts))   #выбирает тот вид, у которого больше всего представителей
+  classes <- orderedXl[1:k,n+1]   #получает список классов для ближайших k объектов
+  counts <- table(classes)   #строит из них таблицу количества цветов каждого класса
+  class <- names(which.max(counts))   #выбирает тот класс, у которого больше всего представителей
   return (class)
 }
 
@@ -48,9 +48,9 @@ determKNN_LOO <- function(xl) {   #определение оптимальног
     print(i)
     for (k in 1:maxK) {   #перебираем значение k
       classes[orderedXl[k,n+1]] <- classes[orderedXl[k,n+1]]+1  #добавляем k-ый элемент в свою группу
-      class <- names(which.max(classes))  #выбирает тот вид, у которого больше всего представителей
+      class <- names(which.max(classes))  #выбирает тот класс, у которого больше всего представителей
       if (class!=obj[n+1]) {   #если произошла ошибка классификации
-        errorForK[k]=errorForK[k]+1/l   #то увиличиваем для данного k значение ошибки
+        errorForK[k]=errorForK[k]+1/l   #то увеличиваем для данного k значение ошибки
       }
     }
   }
@@ -59,9 +59,10 @@ determKNN_LOO <- function(xl) {   #определение оптимальног
     LOO[k, ] <- c(k,errorForK[k])   #строим массив пар (номер, число ошибок)
   }
   optK <- which.min(errorForK)  #выбираем оптимальное k
-  plot(LOO,pch=1,type="l",col="blue",xlab="k",ylab="LOO(k)",main="Find optimal value of k for kNN with LOO-algo")
+  message <- paste0("Find optimal value of k for kNN with LOO-algo, k = ",optK,", error = ",(LOO[optK,2]*l),"/",l," (",round(LOO[optK,2],3),")")
+  plot(LOO,pch=1,type="l",col="blue",xlab="k",ylab="LOO(k)",main=message)
   points(optK,LOO[optK,2],pch=21,bg="red",col="red")
-  res <- paste("optK=",optK)   #готовит подпись для графика
+  res <- paste0("optK=",optK)   #готовит подпись для графика
   text(optK,LOO[optK,2]+0.05,labels=res)
   return (c(optK,errorForK[optK]))
 }
@@ -73,12 +74,12 @@ algoShow <- function(z) {
   l <- dim(xl)[1]
   orderedXl <- sortObjbyDist(xl,z)
   n <- dim(orderedXl)[2]-1
-  classes <- orderedXl[1:k,n+1]   #получает список видов для ближайших k объектов
-  counts <- table(classes)   #строить из них таблицу количество цветов каждого вида
+  classes <- orderedXl[1:k,n+1]   #получает список классов для ближайших k объектов
+  counts <- table(classes)   #строит из них таблицу количества цветов каждого класса
   class <- names(which.max(counts))   #выбирает тот вид, у которого больше всего представителей
   remove <- strtoi(dimnames(orderedXl[1:k, ])[[1]])  #получить номера тех, кто является ближайшими соседями
   newXl <- xl[-remove, ]    #убрать ближайших соседей из общего списка
-  message <- paste("Point (",z[1],",",z[2],") is of class",class)
+  message <- paste0("Point (",z[1],",",z[2],") is of class ",class)
   plot(newXl[ ,1:n],pch=21,bg=colors[newXl[ ,n+1]],col=colors[newXl[ ,n+1]],asp=1,main=message,xlab=xname,ylab=yname)
   points(z[1],z[2],pch=22,bg=colors[class],col=colors[class],asp=1)
   points(orderedXl[1:k,1:n],pch=21,bg=colors[orderedXl[1:k,n+1]],col="black",asp=1)
@@ -86,9 +87,11 @@ algoShow <- function(z) {
 
 
 main <- function(runLOO=FALSE,runMap=FALSE) {
+  ptm <- proc.time()
   errorValue <- 1.0/30.0
   xl <- iris[ ,c(parOne,parTwo,5)]   #построение выборки
-  xMin <- xl[which.min(xl[ ,1]),1]   #нахождение минимального и максимальнго иксов
+  l <- dim(xl)[1]
+  xMin <- xl[which.min(xl[ ,1]),1]   #нахождение минимального и максимального иксов
   xMax <- xl[which.max(xl[ ,1]),1]
   X <- seq(from=xMin,to=xMax,by=0.05)   #список всех иксов на карте
   xLen <- length(X)
@@ -98,10 +101,14 @@ main <- function(runLOO=FALSE,runMap=FALSE) {
   yLen <-length(Y)
   if (runLOO==TRUE) {
     optimals <- determKNN_LOO(xl)   #находим оптимальное k
+    print("LOO algorithm")
+    btm <- proc.time()
+    print(btm-ptm)
     optimalK <<- optimals[1]
     errorValue <- optimals[2]
   }
   if (runMap==TRUE) {
+    ptm <- proc.time()
     flowers <- matrix(NA,xLen,yLen)
     positions <- matrix(NA,xLen*yLen,2)
     cnt <- 1
@@ -114,12 +121,15 @@ main <- function(runLOO=FALSE,runMap=FALSE) {
         cnt <- cnt+1
       }
     }
-    message <- paste("Map of kNN for optimal K =",optimalK,"with error =",errorValue)
+    message <- paste0("Map of kNN for optimal K = ",optimalK,", error = ",(errorValue*l),"/",l," (",round(errorValue,3),")")
     plot(positions,pch=1,bg="white",col=colors[flowers],asp=1,main=message,xlab=xname,ylab=yname)
     points(iris[ ,c(parOne,parTwo)],pch=21,bg=colors[iris$Species],col=colors[iris$Species],asp=1)
+    print("Map build")
+    btm <- proc.time()
+    print(btm-ptm)
   }
 }
 
 
 main(FALSE,FALSE)	#посчитать отдельно LOO и полную карту
-algoShow(c(4,2.4))	#показать классификацию случайной точки, подсветив её соседей
+algoShow(c(4.8,2.4))	#показать классификацию случайной точки, подсветив её соседей
