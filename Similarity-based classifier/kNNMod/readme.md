@@ -40,7 +40,7 @@ sortObjbyDist <- function(xl,z,metricFunc=eucDist) {  #функция сорти
 }
 
 
-meanDist <- function(xl,z,k,metricFunc=eucDist) {   #функция сортировки расстояний до z
+meanDist <- function(xl,z,k,metricFunc=eucDist) {   #сортировка массива расстояний 
   l <- dim(xl)[1]
   n <- dim(xl)[2]-1
   dist <- matrix(NA,l,2)
@@ -58,7 +58,7 @@ subclass <- function(xl,type) {   #выбор определённого кла�
 }
 
 
-kNNMod <- function(xl,z,k) {   #функция выбора класса методов kNN
+kNNMod <- function(xl,z,k) {   #функция выбора класса методом kNN
   types <- c("setosa","versicolor","virginica")
   n <- dim(xl)[2]-1
   classDist <- c(0,0,0)
@@ -79,7 +79,7 @@ kNNMod <- function(xl,z,k) {   #функция выбора класса мет�
 
 График поиска оптимального k с помощью метода LOO
 
-![knnModLOO](knnModLOO.png)
+![knnModLOO](kNNModLOO.png)
 
 Подсветка соседей для случайной точки
 
