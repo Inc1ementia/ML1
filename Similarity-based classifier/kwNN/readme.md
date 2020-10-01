@@ -34,17 +34,17 @@ sortObjbyDist <- function(xl,z,metricFunc=eucDist) {  #функция сорти
   n <- dim(xl)[2]-1
   dist <- matrix(NA,l,2)
   for (i in 1:l) {
-    dist[i, ] <- c(i, metricFunc(xl[i,1:n],z))  #создание списка пар (номер объекта, расстояние до z)
+    dist[i, ] <- c(i,metricFunc(xl[i,1:n],z))  #создание списка пар (номер объекта, расстояние до z)
   }
-  orderedXl <- xl[order(dist[ ,2]), ]   #сортировка списка объектов
+  orderedXl <- xl[order(dist[ ,2]), ]   #сортировка списка расстояний
   return (orderedXl)
 }
 
 
 kwNN <- function(xl,z,optK,optQ) {
-  orderedXl <- sortObjbyDist(xl,z)
+  orderedXl <- sortObjbyDist(xl,z)   #получает отсортированный список объектов
   n <- dim(orderedXl)[2]
-  classes <- orderedXl[1:optK,n]   #получает список классов для ближайших k объектов
+  classes <- orderedXl[1:optK,n]   #выбирает классы ближайших k объектов
   counts <- c("setosa"=0.0,"versicolor"=0.0,"virginica"=0.0)
   for (i in 1:optK) {
     counts[classes[i]] <- counts[classes[i]]+qPow[i,optQ];
