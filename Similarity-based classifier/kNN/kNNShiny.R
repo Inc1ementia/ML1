@@ -1,9 +1,8 @@
 library(shiny)
 
-lastPoint <- c(1.4,2.1)
+lastPoint <- c(1.4,2.1)   #для первого запуска заданы координаты по умолчанию
 parOne <- 3   #чтобы можно было легко поменять параметры
 parTwo <- 4
-selectedItems <- c(3,4)
 titles <- dimnames(iris)[2]
 xname <- titles[[1]][parOne]   #названия для подписей на карте
 yname <- titles[[1]][parTwo]
@@ -35,14 +34,14 @@ findBorders <- function(xl) {
 }
 
 
-ui <- basicPage(
-  sidebarLayout(
-    sidebarPanel(
+ui <- basicPage(   #описание интерфейса
+  sidebarLayout(    #боковая понель
+    sidebarPanel(    #интерфейс бегунка по значению k
       sliderInput(
         inputId="selectK",
         label="value of K",
         min=1,max=149,value=6),
-      selectInput(
+      selectInput(    #интерфейс выпадающего списка для выбора пары критериев
         inputId="irisMap",
         label="Measures of irises:",
         choices = list(
@@ -56,18 +55,18 @@ ui <- basicPage(
         selected = "6"
       )
     ),
-    mainPanel(
-      plotOutput("plot1", click = "plot_click"),
+    mainPanel(   #основная панель
+      plotOutput("plot1", click = "plot_click"),   #график с отслеживанием нажатия
     )
   )
 )
 
 
-server <- function(input, output) {
+server <- function(input, output) {   #серверная часть
   
-  observeEvent(input$irisMap, {
+   observeEvent(input$irisMap, {   #отслеживание изменений в выпадающем списке
     val <- strtoi(input$irisMap)
-    if (val<=3) {
+    if (val<=3) {   #согласно выбранному номеру пары критериев устанавливается пара номеров столбцов
       parOne <<- 1
       parTwo <<- val+1
     } else if (val<=5) {
@@ -83,29 +82,28 @@ server <- function(input, output) {
   
   output$plot1 <- renderPlot({
       xl <- iris[ ,c(parOne,parTwo,5)]   #построение выборки
-      place <- findBorders(xl)
-      
-      if (is.null(input$plot_click$x)) {
-        z <- lastPoint
+      place <- findBorders(xl)   #определение границ графика
+      if (is.null(input$plot_click$x)) {   #если ещё не было нажатия, или нажатие было обработанно в предыдущую итерацию
+        z <- lastPoint   #снова обрабатываем предыдущую точку
       } else {
-        z <- c(round(input$plot_click$x,2), round(input$plot_click$y,2))
-        lastPoint <<- z
+        z <- c(round(input$plot_click$x,2), round(input$plot_click$y,2))   #обрабатываем новое нажатие, округлив координаты
+        lastPoint <<- z   #запоминаем последнее нажатие
       }
-      k <- input$selectK
+      k <- input$selectK   #получаем значение k от бегунка
       l <- dim(xl)[1]
-      orderedXl <- sortObjbyDist(xl,z)
+      orderedXl <- sortObjbyDist(xl,z)   #отсортированный список объектов по расстоянию от выбранной точки
       n <- dim(orderedXl)[2]-1
-      classes <- orderedXl[1:k,n+1]   #получает список классов для ближайших k объектов
-      counts <- table(classes)   #строит из них таблицу количества цветов каждого класса
-      class <- names(which.max(counts))   #выбирает тот класс, у которого больше всего представителей
+      classes <- orderedXl[1:k,n+1]   #получает список видов для ближайших k объектов
+      counts <- table(classes)   #строить из них таблицу количество цветов каждого вида
+      class <- names(which.max(counts))   #выбирает тот вид, у которого больше всего представителей
       remove <- strtoi(dimnames(orderedXl[1:k, ])[[1]])  #получить номера тех, кто является ближайшими соседями
       newXl <- xl[-remove, ]    #убрать ближайших соседей из общего списка
       message <- paste("Point (",z[1],",",z[2],") is of class",class)
-      plot(place[1:2],place[3:4],col="white",main=message,xlab=xname,ylab=yname,asp=1)
-      points(newXl[ ,1:n],pch=21,bg=colors[newXl[ ,n+1]],col=colors[newXl[ ,n+1]],asp=1)
-      points(z[1],z[2],pch=22,bg=colors[class],col=colors[class],asp=1)
-      points(orderedXl[1:k,1:n],pch=21,bg=colors[orderedXl[1:k,n+1]],col="black",asp=1)
+      plot(place[1:2],place[3:4],col="white",main=message,xlab=xname,ylab=yname,asp=1)  #пустой график
+      points(newXl[ ,1:n],pch=21,bg=colors[newXl[ ,n+1]],col=colors[newXl[ ,n+1]],asp=1)   #обычные точки
+      points(z[1],z[2],pch=22,bg=colors[class],col=colors[class],asp=1)   #точка нажатия
+      points(orderedXl[1:k,1:n],pch=21,bg=colors[orderedXl[1:k,n+1]],col="black",asp=1)   #соседи, помечены чёрной рамкой
   })
 }
 
-shinyApp(ui, server)
+shinyApp(ui, server)   #запуск приложения
