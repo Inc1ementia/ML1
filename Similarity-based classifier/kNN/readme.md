@@ -71,4 +71,10 @@ kNN <- function(xl,z,k) {   #функция выбора класса метод
 
 ### Результат работы алгоритма
 
-![kNNShiny](kNNShiny.png)
+![kNNShiny](kNNShiny1.png)
+
+![kNNShiny](kNNShiny2.png)
+
+![kNNShiny](kNNShiny3.png)
+
+![kNNShiny](kNNShiny4.png)
