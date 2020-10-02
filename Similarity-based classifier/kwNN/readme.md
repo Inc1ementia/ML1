@@ -67,3 +67,5 @@ kwNN <- function(xl,z,optK,optQ) {
 Подсветка соседей для случайной точки
 
 ![kwNNLightup](kwNNLightup.png)
+
+### Демонстрация преимущества алгоритма kwNN над kNN
