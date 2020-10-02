@@ -65,7 +65,7 @@ kNN <- function(xl,z,k) {   #функция выбора класса метод
 
 ![kNNLightup](kNNLightup.png)
 
-### Результат работы алгоритма с использованием shiny
+### Результат работы алгоритма с использованием [shiny](https://inc1ementia.shinyapps.io/kNNShiny/)
 
 ![kNNShiny](kNNShiny1.png)
 
