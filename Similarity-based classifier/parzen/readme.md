@@ -1,3 +1,5 @@
+[К меню](https://github.com/Inc1ementia/ML1)
+
 # Метод парзеновского окна
 
 ### Суть метода
@@ -126,3 +128,5 @@ parzenMulty <- function(xl,z,h,kernels) {		#оптимизированная ф�
 ![ParzenRectangleLOO](ParzenRectangleLOO.png)
 
 ![ParzenTriangleLOO](ParzenTriangleLOO.png)
+
+[К меню](https://github.com/Inc1ementia/ML1)
