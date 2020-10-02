@@ -1,5 +1,6 @@
 library(shiny)
 
+colors <- c("setosa"="pink1","versicolor"="gold","virginica"="skyblue1")
 lastPoint <- c(1.4,2.1)   #для первого запуска заданы координаты по умолчанию
 parOne <- 3   #чтобы можно было легко поменять параметры
 parTwo <- 4
