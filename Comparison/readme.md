@@ -1,3 +1,5 @@
+[К меню](https://github.com/Inc1ementia/ML1)
+
 # Сравнение работы алгоритмов
 
 | Название алгоритма                         | Параметры   | Ошибка        | Время работы |
@@ -14,3 +16,4 @@
 | ![ParzenEpanechnikov](ParzenEpanechnikov.png) | ![ParzenGaussian](ParzenGaussian.png) |
 | ![ParzenRectangle](ParzenRectangle.png)       | ![ParzenTriangle](ParzenTriangle.png) |
 
+[К меню](https://github.com/Inc1ementia/ML1)
