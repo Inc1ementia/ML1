@@ -1,3 +1,5 @@
+[К меню](https://github.com/Inc1ementia/ML1)
+
 # Метод kNN или Метод k ближайших соседей
 
 ### Суть метода
@@ -72,3 +74,5 @@ kNN <- function(xl,z,k) {   #функция выбора класса метод
 ![kNNShiny](kNNShiny3.png)
 
 ![kNNShiny](kNNShiny4.png)
+
+[К меню](https://github.com/Inc1ementia/ML1)
