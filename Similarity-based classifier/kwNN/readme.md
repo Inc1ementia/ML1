@@ -69,3 +69,7 @@ kwNN <- function(xl,z,optK,optQ) {
 ![kwNNLightup](kwNNLightup.png)
 
 ### Демонстрация преимущества алгоритма kwNN над kNN
+
+![kNNComp](kNNComp.png)
+
+![kwNNComp](kwNNComp.png)
