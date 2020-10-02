@@ -1,3 +1,5 @@
+[К меню](https://github.com/Inc1ementia/ML1)
+
 # Метод kwNN или Метод k взвешенных ближайших соседей
 
 ### Суть метода
@@ -73,3 +75,5 @@ kwNN <- function(xl,z,optK,optQ) {
 ![kNNComp](kNNComp.png)
 
 ![kwNNComp](kwNNComp.png)
+
+[К меню](https://github.com/Inc1ementia/ML1)
