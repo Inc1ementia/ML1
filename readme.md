@@ -11,3 +11,4 @@
 - [Парзеновское окно](https://github.com/Inc1ementia/ML1/tree/master/Similarity-based%20classifier/parzen)
 - [Потенциальные функции](https://github.com/Inc1ementia/ML1/tree/master/Similarity-based%20classifier/potential)
 - [STOLP](https://github.com/Inc1ementia/ML1/tree/master/Similarity-based%20classifier/STOLP)
+- [FRiS](https://github.com/Inc1ementia/ML1/tree/master/Similarity-based%20classifier/FRiS)
