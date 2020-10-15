@@ -9,4 +9,4 @@
 - [kNNMod](https://github.com/Inc1ementia/ML1/tree/master/Similarity-based%20classifier/kNNMod)
 - [kwNN](https://github.com/Inc1ementia/ML1/tree/master/Similarity-based%20classifier/kwNN)
 - [Парзеновское окно](https://github.com/Inc1ementia/ML1/tree/master/Similarity-based%20classifier/parzen)
-- [Парзеновское окно](https://github.com/Inc1ementia/ML1/tree/master/Similarity-based%20classifier/potential)
+- [Потенциальные функции](https://github.com/Inc1ementia/ML1/tree/master/Similarity-based%20classifier/potential)
