@@ -1,3 +1,5 @@
+[К меню](https://github.com/Inc1ementia/ML1)
+
 # Метод потенциальных функций
 
 *Метрические методы обучения* (similarity-based learning, distance-based learning) — методы, основанные на анализе сходства объектов. Для формализации понятия сходства вводится *функция расстояния* в пространстве объектов X.
@@ -145,3 +147,5 @@ potentials <- function(xl,H,kernelIndex,speedUp=FALSE,high=10) {   #постро
 ![PotentialsRectangle](PotentialsRectangle.png)
 
 ![PotentialsTriangle](PotentialsTriangle.png)
+
+[К меню](https://github.com/Inc1ementia/ML1)
