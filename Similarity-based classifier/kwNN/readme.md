@@ -66,6 +66,10 @@ kwNN <- function(xl,z,optK,optQ) {
 
 ![kwNNLOO](kwNNLOO.png)
 
+График параметров
+
+![kwNNParametrs](kwNNParametrs.png)
+
 Подсветка соседей для случайной точки
 
 ![kwNNLightup](kwNNLightup.png)
