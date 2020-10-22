@@ -56,7 +56,7 @@ levelLine <- function(mu,sigma,x,y,levelColor) {    #построение лин
 }
 ```
 
-### Результат работы алгоритма
+### Результат работы алгоритма с использованием [shiny](https://inc1ementia.shinyapps.io/plugInShiny/)
 
 Результатом работы алгоритма будет следующий график:
 
