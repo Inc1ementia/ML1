@@ -130,7 +130,7 @@ STOLP <- function(xl,algo,l0,delta) {
     res <- algo(xl,omega,i)    
     class <- classes[which.max(res)]
     if (class!=xl[i,n]) {
-      error <- c(error,i)   #если неправильно классифицорвали, то добавляем в список ошибок
+      error <- c(error,i)   #если неправильно классифицировали, то добавляем в список ошибок
     }
   }
   data$col <- ifelse(
