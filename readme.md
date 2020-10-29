@@ -15,5 +15,6 @@
 
 ### Байесовские алгоритмы классификации (Bayes classifier)
 - [Линии уровня](https://github.com/Inc1ementia/ML1/tree/master/Bayes%20classifier/Lines)
+- [Наивный нормальный байесовский классификатор](https://github.com/Inc1ementia/ML1/tree/master/Bayes%20classifier/Naive)
 - [Подстановочный классификатор](https://github.com/Inc1ementia/ML1/tree/master/Bayes%20classifier/PlugIn)
 - [Линейный дискриминант Фишера](https://github.com/Inc1ementia/ML1/tree/master/Bayes%20classifier/Fisher)
