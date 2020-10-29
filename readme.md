@@ -14,5 +14,6 @@
 - [FRiS](https://github.com/Inc1ementia/ML1/tree/master/Similarity-based%20classifier/FRiS)
 
 ### Байесовские алгоритмы классификации (Bayes classifier)
+- [Линии уровня](https://github.com/Inc1ementia/ML1/tree/master/Bayes%20classifier/Lines)
 - [Подстановочный классификатор](https://github.com/Inc1ementia/ML1/tree/master/Bayes%20classifier/PlugIn)
 - [Линейный дискриминант Фишера](https://github.com/Inc1ementia/ML1/tree/master/Bayes%20classifier/Fisher)
