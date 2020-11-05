@@ -21,7 +21,7 @@ muHat <- function(xl) {   #считаем значение мю по данны�
   for (i in 1:n) {
     mu[i] <- mean(xl[ ,i])   #по каждой координате берём среднее
   }
-  return (mu)
+  return (t(mu))
 }
 
 
@@ -29,8 +29,8 @@ sigmaHat <- function(xl,mu) {   #считаем зачение сигма по �
   l <- dim(xl)[1]
   n <- dim(xl)[2]
   sigma <- matrix(0,n,n)
-  for (i in 1:n) {
-    sigma[i, ] <- sum((xl[ ,i]-mu[i])^2)/l
+  for (i in 1:l) {
+    sigma <- sigma+(t(xl[i, ]-mu) %*% (xl[i, ]-mu))/(l-1)
   }
   return (sigma)
 }
@@ -43,7 +43,7 @@ naive <- function(mu,sigma,obj,lambda,P) {   #наивный Байес
   for (i in 1:n) {
     params[i] <- sigma[i,i]   #диагональные элементы матрицы (гипотеза наивного классификатора)
   }
-  return (res+sum(log(Pyj(params,obj,mu))))   #значение функции правдоподобия
+  return (res+sum(log(Pyj(params,obj,c(mu)))))   #значение функции правдоподобия
 }
 
 
