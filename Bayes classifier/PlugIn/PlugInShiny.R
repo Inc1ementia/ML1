@@ -1,4 +1,6 @@
 library(shiny)
+library(MASS)
+
 
 ui <- basicPage(   #описание интерфейса
   sidebarPanel(
@@ -31,10 +33,15 @@ ui <- basicPage(   #описание интерфейса
     splitLayout(    #вывод mu и sigma в виде матриц
       htmlOutput("secondMU"),
       htmlOutput("secondSIG")
-    )
+    ),
+    splitLayout(
+      numericInput("weight1","P1",100,1,500),
+      numericInput("weight2","P2",100,1,500)
+    ),
+    sliderInput("domination","Процентная составляющая первого класса",1,99,value=50)
   ),
   mainPanel(   #основная панель с графиком
-    plotOutput("plot1", click = "plot_click")   #график с отслеживанием нажатия
+    plotOutput("plot1", click = "plot_click", width = "600px", height = "600px")   #график с отслеживанием нажатия
   )
 )
 
@@ -78,7 +85,7 @@ server <- function(input, output) {   #серверная часть
   }
   
   
-  plugIn <- function(mu1,sigma1,mu2,sigma2) {   #получение коэффициентов разделяющей линии плагин-алгоритма
+  plugIn <- function(mu1,sigma1,lambda1,P1,mu2,sigma2,lambda2,P2) {   #получение коэффициентов разделяющей линии плагин-алгоритма
     invSigma1 <- solve(sigma1)
     invSigma2 <- solve(sigma2)
     alpha <- invSigma1-invSigma2
@@ -89,12 +96,13 @@ server <- function(input, output) {   #серверная часть
     d <- -2*betta[1,1]
     e <- -2*betta[2,1]
     f <- mu1%*%invSigma1%*%t(mu1)-mu2%*%invSigma2%*%t(mu2)
+    f <- f-(log(lambda1*P1)-log(lambda2*P2)-0.5*(log(det(invSigma2))-log(det(invSigma1))))
     return (c(a,b,c,d,e,f))
   }
   
   
-  plugInAlgo <- function(mu1,sigma1,mu2,sigma2,x,y) {    #плагин-алгоритм
-    params <- plugIn(mu1,sigma1,mu2,sigma2)
+  plugInAlgo <- function(mu1,sigma1,lambda1,P1,mu2,sigma2,lambda2,P2,x,y) {    #плагин-алгоритм
+    params <- plugIn(mu1,sigma1,lambda1,P1,mu2,sigma2,lambda2,P2)
     z <- outer(x,y,function(x,y) {params[1]*x^2+params[2]*x*y+params[3]*y^2+params[4]*x+params[5]*y+params[6]})
     contour(x,y,z,levels=0,drawlabels=FALSE,lwd=3,col=colors[3],add=TRUE)
   }
@@ -105,6 +113,27 @@ server <- function(input, output) {   #серверная часть
     z <- outer(x,y,function(x,y) {coeffs[1]*x^2+coeffs[2]*x*y+coeffs[3]*y^2+coeffs[4]*x+coeffs[5]*y+coeffs[6]})
     contour(x,y,z,levels=c(5,10,15),drawlabels=FALSE,lwd=1,col=levelColor,add=TRUE)
     points(mu[1],mu[2],pch=19,bg=levelColor,asp=1)
+  }
+  
+  
+  muHat <- function(xl) {   #считаем значение мю по данным для класса
+    n <- dim(xl)[2]
+    mu <- array(NA,n)
+    for (i in 1:n) {
+      mu[i] <- mean(xl[ ,i])   #по каждой координате берём среднее
+    }
+    return (t(mu))
+  }
+  
+  
+  sigmaHat <- function(xl,mu) {   #считаем зачение сигма по данным для класса и полученному мю
+    l <- dim(xl)[1]
+    n <- dim(xl)[2]
+    sigma <- matrix(0,n,n)
+    for (i in 1:l) {
+      sigma <- sigma+(t(xl[i, ]-mu) %*% (xl[i, ]-mu))/(l-1)
+    }
+    return (sigma)
   }
   
   
@@ -168,28 +197,44 @@ server <- function(input, output) {   #серверная часть
         lastPoint2(z)
       }
     }
+    lambda1 <- input$domination
+    lambda2 <- 100-lambda1
+    P1 <- input$weight1
+    P2 <- input$weight2
     mu1 <- matrix(lastPoint1(),1,2)   #по последнему нажатию строятся матрицы центров классов
     mu2 <- matrix(lastPoint2(),1,2)
-    xl1 <- mvrnorm(250,mu1,sig1())    #многомерное распределение точек классов
-    xl2 <- mvrnorm(250,mu2,sig2())
+    xl1 <- mvrnorm(P1,mu1,sig1())    #многомерное распределение точек классов
+    xl2 <- mvrnorm(P2,mu2,sig2())
     xl <- rbind(cbind(xl1,1),cbind(xl2,2))   #объединяем два множества точек, указав классы
+    mu1h <- muHat(xl1)
+    mu2h <- muHat(xl2)
+    sig1h <- sigmaHat(xl1,mu1h)
+    sig2h <- sigmaHat(xl2,mu2h)
     x <- seq(-20,20,by=0.1)
     y <- x
-    plot(x,y,type="n",xlab="x",ylab="y",asp=1)   #пустой график
-    levelLine(mu1,sig1(),x,y,colors[1])   #линия уровня первого класса
-    levelLine(mu2,sig2(),x,y,colors[2])   #и второго
+    plot(seq(-15,15,by=0.1),seq(-15,15,by=0.1),type="n",xlab="x",ylab="y",asp=1)   #пустой график
+    levelLine(mu1h,sig1h,x,y,colors[1])   #линия уровня первого класса
+    levelLine(mu2h,sig2h,x,y,colors[2])   #и второго
     points(xl[ ,1],xl[ ,2],pch=21,bg=colors[xl[ ,3]],asp=1)   #рисуем сами точки классов
-    plugInAlgo(mu1,sig1(),mu2,sig2(),x,y)   #plug-in алгоритм
+    plugInAlgo(mu1h,sig1h,lambda1,P1,mu2h,sig2h,lambda2,P2,x,y)   #plug-in алгоритм
   })
+  
+  
   output$firstMU <- renderUI({    #рисуем матрицу координат центра первого класса
     HTML(buildMatrix(matrix(lastPoint1(),1,2)))
   })
+  
+  
   output$secondMU <- renderUI({    #рисуем матрицу координат центра второго класса
     HTML(buildMatrix(matrix(lastPoint2(),1,2)))
   })
+  
+  
   output$firstSIG <- renderUI({   #рисуем ковариационную матрицу первого класса
     HTML(buildMatrix(sig1()))
   })
+  
+  
   output$secondSIG <- renderUI({   #рисуем ковариационную матрицу второго класса
     HTML(buildMatrix(sig2()))
   })
