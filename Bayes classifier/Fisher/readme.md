@@ -37,12 +37,14 @@ levelLine <- function(mu,sigma,x,y,levelColor) {    #построение лин
 }
   
   
-linearFisher <- function(mu1,mu2,sigma,lambda1,lambda2) {    #построение разделяющей прямой Фишера
-  invSigma <- solve(sigma);
-  alpha <- invSigma%*%t(mu1-mu2);
-  muSt <- (mu1*lambda2+mu2*lambda1)*0.5;
-  betta <- muSt%*%alpha;
-  abline(betta/alpha[2,1],-alpha[1,1]/alpha[2,1],col=colors[4],lwd=3)
+linearFisher <- function(mu1,mu2,sigma,lambda1,lambda2,P1,P2) {    #построение разделяющей прямой Фишера
+  invSigma <- solve(sigma)
+  muSt <- mu1-mu2
+  b <- invSigma[1,2]+invSigma[2,1]
+  alpha <- c((2*invSigma[1,1]*muSt[1,1]+b*muSt[1,2]),(2*invSigma[2,2]*muSt[1,2]+b*muSt[1,1]))
+  betta <- mu1%*%invSigma%*%t(mu1)-mu2%*%invSigma%*%t(mu2)
+  betta <- betta-(log(lambda1*P1)-log(lambda2*P2))
+  abline(betta/alpha[2],-alpha[1]/alpha[2],col=colors[4],lwd=3)
 }
 ```
 
