@@ -26,7 +26,7 @@ getLevelLine <- function(mu,sigma) {  #получение коэффициент
 }
   
   
-plugIn <- function(mu1,sigma1,mu2,sigma2) {   #получение коэффициентов разделяющей линии плагин-алгоритма
+plugIn <- function(mu1,sigma1,lambda1,P1,mu2,sigma2,lambda2,P2) {   #получение коэффициентов разделяющей линии плагин-алгоритма
   invSigma1 <- solve(sigma1)
   invSigma2 <- solve(sigma2)
   alpha <- invSigma1-invSigma2
@@ -36,13 +36,14 @@ plugIn <- function(mu1,sigma1,mu2,sigma2) {   #получение коэффиц
   c <- alpha[2,2]
   d <- -2*betta[1,1]
   e <- -2*betta[2,1]
-  f <- log(det(sigma1))-log(det(sigma2))+mu1%*%invSigma1%*%t(mu1)-mu2%*%invSigma2%*%t(mu2)
+  f <- mu1%*%invSigma1%*%t(mu1)-mu2%*%invSigma2%*%t(mu2)
+  f <- f-(log(lambda1*P1)-log(lambda2*P2)-0.5*(log(det(invSigma2))-log(det(invSigma1))))
   return (c(a,b,c,d,e,f))
 }
   
   
-plugInAlgo <- function(mu1,sigma1,mu2,sigma2,x,y) {    #плагин-алгоритм
-  params <- plugIn(mu1,sigma1,mu2,sigma2)
+plugInAlgo <- function(mu1,sigma1,lambda1,P1,mu2,sigma2,lambda2,P2,x,y) {    #плагин-алгоритм
+  params <- plugIn(mu1,sigma1,lambda1,P1,mu2,sigma2,lambda2,P2)
   z <- outer(x,y,function(x,y) {params[1]*x^2+params[2]*x*y+params[3]*y^2+params[4]*x+params[5]*y+params[6]})
   contour(x,y,z,levels=0,drawlabels=FALSE,lwd=3,col=colors[3],add=TRUE)
 }
