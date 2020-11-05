@@ -1,6 +1,5 @@
 library(shiny)
-
-
+library(MASS)
 
 ui <- basicPage(   #описание интерфейса
   sidebarPanel(
@@ -18,6 +17,10 @@ ui <- basicPage(   #описание интерфейса
     ),
     #бегунок для определения коэффициентов lambda1 и lambda2 из соотношения x/(100-x)
     sliderInput("domination","Процентная составляющая первого класса",1,99,value=50),
+    splitLayout(
+      numericInput("weight1","P1",100,1,500),
+      numericInput("weight2","P2",100,1,500)
+    ),
     splitLayout(    #вывод mu и sigma в виде матриц
       htmlOutput("firstMU"),
       htmlOutput("secondMU")
@@ -25,9 +28,10 @@ ui <- basicPage(   #описание интерфейса
     htmlOutput("SIG")
   ),
   mainPanel(   #основная панель с графиком
-    plotOutput("plot1", click = "plot_click")   #график с отслеживанием нажатия
+    plotOutput("plot1", click = "plot_click", width="600px", height="600px")   #график с отслеживанием нажатия
   )
 )
+
 
 
 server <- function(input, output) {   #серверная часть
@@ -36,6 +40,7 @@ server <- function(input, output) {   #серверная часть
   lastPoint2 <- reactiveVal(c(-3,7))   #и для второго
   isClickable <- reactiveVal(1)    #номер того, чьи координаты мы сейчас меняем
   sig <- reactiveVal(matrix(c(1,0,0,1),2,2))   #матрица ковариаций первого класса
+  
   
   
   buildMatrix <- function(matr) {   #красивое отображение матриц с использованием стилей в html
@@ -54,6 +59,7 @@ server <- function(input, output) {   #серверная часть
     res <- paste0(res,'</table>')
     return (res)
   }
+  
   
   
   getLevelLine <- function(mu,sigma) {  #получение коэффициентов линии уровня (x-mu)^T %*% Sig^-1 %*% (x-mu)
@@ -76,14 +82,40 @@ server <- function(input, output) {   #серверная часть
   }
   
   
-  linearFisher <- function(mu1,mu2,sigma,lambda1,lambda2) {    #построение разделяющей прямой Фишера
-    invSigma <- solve(sigma);
-    alpha <- invSigma%*%t(mu1-mu2);
-    muSt <- (mu1*lambda2+mu2*lambda1)*0.5;
-    betta <- muSt%*%alpha;
-    abline(betta/alpha[2,1],-alpha[1,1]/alpha[2,1],col=colors[4],lwd=3)
+  linearFisher <- function(mu1,mu2,sigma,lambda1,lambda2,P1,P2) {    #построение разделяющей прямой Фишера
+    invSigma <- solve(sigma)
+    muSt <- mu1-mu2
+    b <- invSigma[1,2]+invSigma[2,1]
+    alpha <- c((2*invSigma[1,1]*muSt[1,1]+b*muSt[1,2]),(2*invSigma[2,2]*muSt[1,2]+b*muSt[1,1]))
+    betta <- mu1%*%invSigma%*%t(mu1)-mu2%*%invSigma%*%t(mu2)
+    betta <- betta-(log(lambda1*P1)-log(lambda2*P2))
+    abline(betta/alpha[2],-alpha[1]/alpha[2],col=colors[4],lwd=3)
   }
   
+  
+  muHat <- function(xl) {   #считаем значение мю по данным для класса
+    n <- dim(xl)[2]
+    mu <- array(NA,n)
+    for (i in 1:n) {
+      mu[i] <- mean(xl[ ,i])   #по каждой координате берём среднее
+    }
+    return (t(mu))
+  }
+  
+  
+  sigmaHat <- function(xl1,xl2,mu1,mu2) {   #считаем зачение сигма по данным для класса и полученному мю
+    l <- dim(xl1)[1]
+    ll <- dim(xl2)[1]
+    n <- dim(xl1)[2]
+    sigma <- matrix(0,n,n)
+    for (i in 1:l) {
+      sigma <- sigma+(t(xl1[i, ]-mu1) %*% (xl1[i, ]-mu1))/(l-1)
+    }
+    for (i in 1:ll) {
+      sigma <- sigma+(t(xl2[i, ]-mu2) %*% (xl2[i, ]-mu2))/(ll-1)
+    }
+    return (sigma)
+  }
   
   
   #обработчик событий клиент-сервер
@@ -131,19 +163,26 @@ server <- function(input, output) {   #серверная часть
     }
     mu1 <- matrix(lastPoint1(),1,2)   #по последнему нажатию строятся матрицы центров классов
     mu2 <- matrix(lastPoint2(),1,2)
-    xl1 <- mvrnorm(250,mu1,sig())    #многомерное распределение точек классов
-    xl2 <- mvrnorm(250,mu2,sig())
+    lambda1 <- input$domination
+    lambda2 <- 100-lambda1
+    P1 <- input$weight1
+    P2 <- input$weight2
+    xl1 <- mvrnorm(P1,mu1,sig())    #многомерное распределение точек классов
+    xl2 <- mvrnorm(P2,mu2,sig())
     xl <- rbind(cbind(xl1,1),cbind(xl2,2))   #объединяем два множества точек, указав классы
+    mu1h <- muHat(xl1)
+    mu2h <- muHat(xl2)
+    sigh <- sigmaHat(xl1,xl2,mu1h,mu2h)
     x <- seq(-20,20,by=0.1)
     y <- x
-    plot(x,y,type="n",xlab="x",ylab="y",asp=1)   #пустой график
-    levelLine(mu1,sig(),x,y,colors[1])   #линия уровня первого класса
-    levelLine(mu2,sig(),x,y,colors[2])
+    plot(seq(-15,15,by=0.1),seq(-15,15,by=0.1),type="n",xlab="x",ylab="y",asp=1)   #пустой график
+    levelLine(mu1h,sigh,x,y,colors[1])   #линия уровня первого класса
+    levelLine(mu2h,sigh,x,y,colors[2])
     points(xl[ ,1],xl[ ,2],pch=21,bg=colors[xl[ ,3]],asp=1)   #рисуем сами точки классов
-    linearFisher(mu1,mu2,sig(),(input$domination)*0.01,(100-input$domination)*0.01)
-    points(mu1[1,1],mu1[1,2],pch=21,bg=colors[5])
-    points(mu2[1,1],mu2[1,2],pch=21,bg=colors[5])
-    segments(mu1[1,1],mu1[1,2],mu2[1,1],mu2[1,2],col=colors[5],lwd=2)
+    linearFisher(mu1h,mu2h,sigh,lambda1,lambda2,P1,P2)
+    points(mu1h[1,1],mu1h[1,2],pch=21,bg=colors[5])
+    points(mu2h[1,1],mu2h[1,2],pch=21,bg=colors[5])
+    segments(mu1h[1,1],mu1h[1,2],mu2h[1,1],mu2h[1,2],col=colors[5],lwd=2)
   })
   
   
