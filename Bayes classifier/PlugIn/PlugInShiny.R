@@ -1,7 +1,6 @@
 library(shiny)
 library(MASS)
 
-
 ui <- basicPage(   #описание интерфейса
   sidebarPanel(
     actionButton("clickFirst","Выбор центра первого класса"),  #после нажатия кликом по графику перемещаем центр первого класса
@@ -34,11 +33,12 @@ ui <- basicPage(   #описание интерфейса
       htmlOutput("secondMU"),
       htmlOutput("secondSIG")
     ),
-    splitLayout(
+    splitLayout(    #значение P1 и P2 для классов
       numericInput("weight1","P1",100,1,500),
       numericInput("weight2","P2",100,1,500)
     ),
-    sliderInput("domination","Процентная составляющая первого класса",1,99,value=50)
+    sliderInput("domination","Процентная составляющая первого класса",1,99,value=50),   #установка параметра лямбда
+    actionButton("workout","Точка для классификации")   #переключение на выбор точки для классификации
   ),
   mainPanel(   #основная панель с графиком
     plotOutput("plot1", click = "plot_click", width = "600px", height = "600px")   #график с отслеживанием нажатия
@@ -50,9 +50,12 @@ server <- function(input, output) {   #серверная часть
   colors <- c("pink1","skyblue1","gold","purple4","yellow")  #набор цветов
   lastPoint1 <- reactiveVal(c(8,2))   #храним данные о последнем нажатие для первого класса
   lastPoint2 <- reactiveVal(c(-3,7))   #и для второго
+  lastPoint3 <- reactiveVal(NULL)    #точка для классификации
   isClickable <- reactiveVal(1)    #номер того, чьи координаты мы сейчас меняем
   sig1 <- reactiveVal(matrix(c(1,0,0,1),2,2))   #матрица ковариаций первого класса
   sig2 <- reactiveVal(matrix(c(1,0,0,1),2,2))   #и второго
+  objList <- reactiveVal(NULL)   #список точек (для классификации)
+  lastLambda <- reactiveVal(50)    #последнее значение лямбды
   
   
   buildMatrix <- function(matr) {   #красивое отображение матриц с использованием стилей в html
@@ -148,6 +151,11 @@ server <- function(input, output) {   #серверная часть
   })
   
   
+  observeEvent(input$workout, {   #переключение на классификацию
+    isClickable(3)
+  })
+  
+  
   observeEvent(input$typeFirst, {   #изменение первого выпадающего списка
     val <- strtoi(input$typeFirst)   #переводим параметр из сторки в число
     if (val==1) {   #сферическая матрица
@@ -162,6 +170,8 @@ server <- function(input, output) {   #серверная часть
       e <- sample(-int:int,1)
       sig1(matrix(c(d[1],e,e,d[2]),2,2))
     }
+    isClickable(1)
+    lastPoint3(NULL)
   })
   
   
@@ -179,6 +189,8 @@ server <- function(input, output) {   #серверная часть
       e <- sample(-int:int,1)
       sig2(matrix(c(d[1],e,e,d[2]),2,2))
     }
+    isClickable(2)
+    lastPoint3(NULL)
   })
   
   
@@ -186,30 +198,65 @@ server <- function(input, output) {   #серверная часть
     if (is.null(input$plot_click$x)) {   #если ещё не было нажатия, или нажатие было обработанно в предыдущую итерацию
       if (isClickable()==1) { #снова обрабатываем предыдущую точку
         z <- lastPoint1()
-      } else {
+      } else if (isClickable()==2) {
         z <- lastPoint2()
+      } else {
+        z <- lastPoint3()
       }
     } else {
       z <- c(round(input$plot_click$x,2), round(input$plot_click$y,2))   #обрабатываем новое нажатие, округлив координаты
       if (isClickable()==1) {  #запоминаем последнее нажатие
         lastPoint1(z)
-      } else {
+        lastPoint3(NULL)
+      } else if (isClickable()==2) {
         lastPoint2(z)
+        lastPoint3(NULL)
+      } else {
+        lastPoint3(z)
       }
     }
-    lambda1 <- input$domination
-    lambda2 <- 100-lambda1
-    P1 <- input$weight1
-    P2 <- input$weight2
-    mu1 <- matrix(lastPoint1(),1,2)   #по последнему нажатию строятся матрицы центров классов
-    mu2 <- matrix(lastPoint2(),1,2)
-    xl1 <- mvrnorm(P1,mu1,sig1())    #многомерное распределение точек классов
-    xl2 <- mvrnorm(P2,mu2,sig2())
-    xl <- rbind(cbind(xl1,1),cbind(xl2,2))   #объединяем два множества точек, указав классы
-    mu1h <- muHat(xl1)
-    mu2h <- muHat(xl2)
-    sig1h <- sigmaHat(xl1,mu1h)
-    sig2h <- sigmaHat(xl2,mu2h)
+    if (input$domination!=lastLambda()) {   #если менялось значение лямбды
+      z <- lastPoint1()   #то выставляем выбор первого класса
+      isClickable(1)
+      lastPoint3(NULL)
+    }
+    if (isClickable()==3) {
+      xl <- objList()
+      if (dim(xl)[1]!=input$weight1+input$weight2) {   #если размер выборки не совпадает, то есть менялись P1 или P2
+        z <- lastPoint1()   #то выставляем выбор первого класса
+        isClickable(1)
+        lastPoint3(NULL)
+      }
+    }
+    if (isClickable()!=3) {
+      lambda1 <- input$domination   #обновление графика
+      lastLambda(lambda1)
+      lambda2 <- 100-lambda1
+      P1 <- input$weight1
+      P2 <- input$weight2
+      mu1 <- matrix(lastPoint1(),1,2)   #по последнему нажатию строятся матрицы центров классов
+      mu2 <- matrix(lastPoint2(),1,2)
+      xl1 <- mvrnorm(P1,mu1,sig1())    #многомерное распределение точек классов
+      xl2 <- mvrnorm(P2,mu2,sig2())
+      xl <- rbind(cbind(xl1,1),cbind(xl2,2))   #объединяем два множества точек, указав классы
+      objList(xl)
+      mu1h <- muHat(xl1)
+      mu2h <- muHat(xl2)
+      sig1h <- sigmaHat(xl1,mu1h)
+      sig2h <- sigmaHat(xl2,mu2h)
+    } else {    #классификация
+      lambda1 <- lastLambda()
+      lambda2 <- 100-lambda1
+      P1 <- input$weight1
+      P2 <- input$weight2
+      xl <- objList()
+      xl1 <- xl[which(xl[ ,3]==1,arr.ind=TRUE),1:2]
+      xl2 <- xl[which(xl[ ,3]==2,arr.ind=TRUE),1:2]
+      mu1h <- muHat(xl1)
+      mu2h <- muHat(xl2)
+      sig1h <- sigmaHat(xl1,mu1h)
+      sig2h <- sigmaHat(xl2,mu2h)
+    }
     x <- seq(-20,20,by=0.1)
     y <- x
     plot(seq(-15,15,by=0.1),seq(-15,15,by=0.1),type="n",xlab="x",ylab="y",asp=1)   #пустой график
@@ -217,6 +264,16 @@ server <- function(input, output) {   #серверная часть
     levelLine(mu2h,sig2h,x,y,colors[2])   #и второго
     points(xl[ ,1],xl[ ,2],pch=21,bg=colors[xl[ ,3]],asp=1)   #рисуем сами точки классов
     plugInAlgo(mu1h,sig1h,lambda1,P1,mu2h,sig2h,lambda2,P2,x,y)   #plug-in алгоритм
+    if (isClickable()==3 && !is.null(z)) {   #классификатор
+      params <- plugIn(mu1h,sig1h,lambda1,P1,mu2h,sig2h,lambda2,P2)
+      class <- params[1]*z[1]^2+params[2]*z[1]*z[2]+params[3]*z[2]^2+params[4]*z[1]+params[5]*z[2]+params[6]
+      if (class<0) {
+       class <- 1 
+      } else {
+        class <- 2
+      }
+      points(z[1],z[2],pch=22,bg=colors[class],asp=1,col="purple")
+    }
   })
   
   
