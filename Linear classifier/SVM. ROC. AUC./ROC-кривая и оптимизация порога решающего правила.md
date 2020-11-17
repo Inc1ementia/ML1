@@ -22,13 +22,13 @@
 
 По оси X откладывается доля *ошибочных положительных классификаций* (false positive rate, FPR)
 
-<img src="https://render.githubusercontent.com/render/math?math=%5Coperatorname%7BFPR%7Dt(%20a%2C%7BX%7D%5E%7Bl%7D)%20%3D%5Cfrac%7B%7B%5Csum%7D_%7Bi%3D1%7D%5E%7Bl%7D%5B%7By%7D_%7Bi%7D%3D-1%5D%5Ba(%7Bx%7D_%7Bi%7D)%20%3D%2B1%5D%7D%7B%7B%5Csum%7D_%7Bi%3D1%7D%5E%7Bl%7D%5B%20%7By%7D_%7Bi%7D%3D-1%5D%7D">
+<img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BFPR%7D(%20a%2C%7BX%7D%5E%7Bl%7D)%20%3D%5Cfrac%7B%7B%5Csum%7D_%7Bi%3D1%7D%5E%7Bl%7D%5B%7By%7D_%7Bi%7D%3D-1%5D%5Ba(%7Bx%7D_%7Bi%7D)%20%3D%2B1%5D%7D%7B%7B%5Csum%7D_%7Bi%3D1%7D%5E%7Bl%7D%5B%20%7By%7D_%7Bi%7D%3D-1%5D%7D">
 
 Величина 1 − FPR(a) равна доле *правильных отрицательных классификаций* (true negative rate, TNR) и называется *специфичностью* алгоритма. Поэтому на горизонтальной оси иногда пишут «1 − специфичность».
 
 По оси Y откладывается доля *правильных положительных классификаций* (true positive rate, TPR), называемая также *чувствительностью* алгоритма:
 
-<img src="https://render.githubusercontent.com/render/math?math=%5Coperatorname%7BTPR%7D(%20a%2C%7BX%7D%5E%7Bl%7D)%20%3D%5Cfrac%7B%7B%5Csum%7D_%7Bi%3D1%7D%5E%7Bl%7D%5B%7By%7D_%7Bi%7D%3D%2B1%5D%5Ba(%7Bx%7D_%7Bi%7D)%20%3D%2B1%5D%7D%7B%7B%5Csum%7D_%7Bi%3D1%7D%5E%7Bl%7D%5B%7By%7D_%7Bi%7D%3D%2B1%5D%7D">
+<img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BTPR%7D(%20a%2C%7BX%7D%5E%7Bl%7D)%20%3D%5Cfrac%7B%7B%5Csum%7D_%7Bi%3D1%7D%5E%7Bl%7D%5B%7By%7D_%7Bi%7D%3D%2B1%5D%5Ba(%7Bx%7D_%7Bi%7D)%20%3D%2B1%5D%7D%7B%7B%5Csum%7D_%7Bi%3D1%7D%5E%7Bl%7D%5B%7By%7D_%7Bi%7D%3D%2B1%5D%7D">
 
 Каждая точка ROC-кривой соответствует определённому значению параметра. ROC-кривая монотонно не убывает и проходит из точки (0, 0) в (1, 1).
 
@@ -61,49 +61,49 @@
 
 ​	последовательность точек ROC-кривой:
 
-<img src="https://render.githubusercontent.com/render/math?math=%7B%5C%7B(%7B%5Coperatorname%7BFPR%7D%7D_%7Bi%7D%2C%7B%5Coperatorname%7BTPR%7D%7D_%7Bi%7D)%5C%7D%7D_%7Bi%3D0%7D%5E%7Bl%7D">
+<img src="https://render.githubusercontent.com/render/math?math=%7B%5C%7B(%7B%5Ctext%7BFPR%7D%7D_%7Bi%7D%2C%7B%5Ctext%7BTPR%7D%7D_%7Bi%7D)%5C%7D%7D_%7Bi%3D0%7D%5E%7Bl%7D">
 
 ​	площадь под ROC-кривой: AUC
 
 ------
 
  1. число объектов класса −1:
-    $$
-    {l}_{-}:={\sum}_{i=1}^{l}[{y}_{i}=-1]
-    $$
+
+    <img src="https://render.githubusercontent.com/render/math?math=%7Bl%7D_%7B-%7D%3A%3D%7B%5Csum%7D_%7Bi%3D1%7D%5E%7Bl%7D%5B%7By%7D_%7Bi%7D%3D-1%5D">
+
     число объектов класса +1:
-    $$
-    {l}_{+}:={\sum}_{i=1}^{l}[{y}_{i}=+1]
-    $$
+    
+    <img src="https://render.githubusercontent.com/render/math?math=%7Bl%7D_%7B%2B%7D%3A%3D%7B%5Csum%7D_%7Bi%3D1%7D%5E%7Bl%7D%5B%7By%7D_%7Bi%7D%3D%2B1%5D">
+    
 
  2. упорядочить выборку по убыванию значений
-    $$
-    f({x}_{i})
-    $$
+    
+    <img src="https://render.githubusercontent.com/render/math?math=f(%7Bx%7D_%7Bi%7D)">
+    
 
  3. поставить первую точку в начало координат:
-    $$
-    ({\operatorname{FPR}}_{0},{\operatorname{TPR}}_{0}):=(0,0);\quad \operatorname{AUC}:=0
-    $$
+    
+    <img src="https://render.githubusercontent.com/render/math?math=(%7B%5Ctext%7BFPR%7D%7D_%7B0%7D%2C%7B%5Ctext%7BTPR%7D%7D_%7B0%7D)%3A%3D(0%2C0)%3B%5Cquad%20%5Ctext%7BAUC%7D%3A%3D0">
+    
 
- 4. $$
-    i:=1,\dots,l
-    $$
+ 4. 
+    <img src="https://render.githubusercontent.com/render/math?math=i%3A%3D1%2C%5Cdots%2Cl">
+    
 
     если 
-    $$
-    {y}_{i}=−1
-    $$
+    
+    <img src="https://render.githubusercontent.com/render/math?math=%7By%7D_%7Bi%7D%3D-1">
+    
     то сместиться на один шаг вправо:
-    $$
-    {\operatorname{FPR}}_{i} := {\operatorname{FPR}}_{i-1} +\frac{1}{{l}_{-}}; \quad {\operatorname{TPR}}_{i} := {\operatorname{TPR}}_{i-1}
-    $$
+    
+    <img src="https://render.githubusercontent.com/render/math?math=%7B%5Ctext%7BFPR%7D%7D_%7Bi%7D%20%3A%3D%20%7B%5Ctext%7BFPR%7D%7D_%7Bi-1%7D%20%2B%5Cfrac%7B1%7D%7B%7Bl%7D_%7B-%7D%7D%3B%20%5Cquad%20%7B%5Ctext%7BTPR%7D%7D_%7Bi%7D%20%3A%3D%20%7B%5Ctext%7BTPR%7D%7D_%7Bi-1%7D">
+    
 
-    $$
-    \operatorname{AUC} := \operatorname{AUC}+\frac{1}{{l}_{-}} {\operatorname{TPR}}_{i}
-    $$
+    
+    <img src="https://render.githubusercontent.com/render/math?math=%5Ctext%7BAUC%7D%20%3A%3D%20%5Ctext%7BAUC%7D%2B%5Cfrac%7B1%7D%7B%7Bl%7D_%7B-%7D%7D%20%7B%5Ctext%7BTPR%7D%7D_%7Bi%7D">
+    
 
     иначе сместиться на один шаг вверх:
-    $$
-    {\operatorname{FPR}}_{i} := {\operatorname{FPR}}_{i-1};\;\;{\operatorname{TPR}}_{i} :={\operatorname{TPR}}_{i-1} +\frac{1}{{l}_{+}}
-    $$
+    
+    <img src="https://render.githubusercontent.com/render/math?math=%7B%5Ctext%7BFPR%7D%7D_%7Bi%7D%20%3A%3D%20%7B%5Ctext%7BFPR%7D%7D_%7Bi-1%7D%3B%5C%3B%5C%3B%7B%5Ctext%7BTPR%7D%7D_%7Bi%7D%20%3A%3D%7B%5Ctext%7BTPR%7D%7D_%7Bi-1%7D%20%2B%5Cfrac%7B1%7D%7B%7Bl%7D_%7B%2B%7D%7D">
+    
