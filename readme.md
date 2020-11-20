@@ -18,3 +18,6 @@
 - [Наивный нормальный байесовский классификатор](https://github.com/Inc1ementia/ML1/tree/master/Bayes%20classifier/Naive)
 - [Подстановочный классификатор](https://github.com/Inc1ementia/ML1/tree/master/Bayes%20classifier/PlugIn)
 - [Линейный дискриминант Фишера](https://github.com/Inc1ementia/ML1/tree/master/Bayes%20classifier/Fisher)
+
+### Линейные алгоритмы классификации (Linear classifier)
+- [Стохастический градиент](https://github.com/Inc1ementia/ML1/tree/master/Linear%20classifier/SGradient)
