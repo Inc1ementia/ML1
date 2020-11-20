@@ -85,7 +85,7 @@ step <- function(w,obj,func) {   #градиентный шаг
 }
 
 
-gradient <- function(xl,lambda,funcL,funcLL,isHebb=FALSE,weightInit=randomWeight) {
+gradient <- function(xl,lambda,funcL,funcLL,rule,weightInit=randomWeight) {
   l <- dim(xl)[1]
   n <- dim(xl)[2]-1
   w <- weightInit(n)   #инициализируем массив весов
@@ -93,10 +93,9 @@ gradient <- function(xl,lambda,funcL,funcLL,isHebb=FALSE,weightInit=randomWeight
   Qprev <- array(Q-100.0,10)   #массив для проверки нормализации эмпирического риска
   class <- sample(c(-1,1),1)    #один из случайных классов, для чередования
   steps <- 0
-  nu <- 1
   while (TRUE) {
     steps <- steps+1
-    if (isHebb==TRUE) {   #для правила Хэбба берём только плохие
+    if (rule=="H") {   #для правила Хэбба берём только плохие
       errored <- findErrors(w,xl,funcL)   #список плохих объектов
       if (length(errored)==0) break
       obj <- sample(errored,1)    #выбираем случайный
@@ -104,10 +103,14 @@ gradient <- function(xl,lambda,funcL,funcLL,isHebb=FALSE,weightInit=randomWeight
       obj <- sample(which(xl[ ,n+1]==class,arr.ind=TRUE),1)   #выбираем случайный из предложенного класса
     }
     eps <- error(w,matrix(xl[obj, ],1,n+1),funcL)   #считаем ошибку на объекте
+    if (rule=="L") {
+      nu <- 1/sqrt(sum(xl[obj,1:n]*xl[obj,1:n]))
+    } else {
+      nu <- 1/steps
+    }
     w <- w-nu*step(w,xl[obj, ],funcLL)   #и делаем градиентный спуск
     Q <- (1-lambda)*Q+lambda*eps    #пересчитываем значение эмперического риска
     class <- -class    #меняем класс на противоположный
-    nu <- 1/steps
     if (abs(mean(Qprev)-Q)<1e-3) {   #эмпирический риск стабилизировался
       break
     } else {
@@ -122,17 +125,17 @@ gradient <- function(xl,lambda,funcL,funcLL,isHebb=FALSE,weightInit=randomWeight
 main <- function() {
   xl <- matrix(0.0,100,4)
   for (i in 1:100) {
-    xl[i, ] <- c(iris[i,3],iris[i,4],-1,ifelse(i>50,1,-1))
+    xl[i, ] <- c(iris[i+50,3],iris[i+50,4],-1,ifelse(i>50,1,-1))
   }
   xl <- cbind(dataNorm(xl[ ,1:2]),xl[ ,3:4])
   colors <- c("pink1","skyblue1","limegreen","firebrick1","darkviolet")
   message <- "Линейные классификаторы ADALINE, правило Хэбба и логистическая регрессия"
   plot(xl[ ,1],xl[ ,2],pch=21,bg=ifelse(xl[ ,4]==1,colors[1],colors[2]),col="black",asp=1,main=message)
-  weight <- gradient(xl,0.1,adalineL,adalineLL)
+  weight <- gradient(xl,0.1,adalineL,adalineLL,"A")
   abline(weight[3]/weight[2],-weight[1]/weight[2],col=colors[3],lwd=2,asp=1)
-  weight <- gradient(xl,0.1,hebbL,hebbLL,TRUE)
+  weight <- gradient(xl,0.1,hebbL,hebbLL,"H")
   abline(weight[3]/weight[2],-weight[1]/weight[2],col=colors[4],lwd=2,asp=1)
-  weight <- gradient(xl,0.1,logisticL,logisticLL)
+  weight <- gradient(xl,0.1,logisticL,logisticLL,"L")
   abline(weight[3]/weight[2],-weight[1]/weight[2],col=colors[5],lwd=2,asp=1)
   legend(0.9,0.4,c("ADALINE","Hebb","LogIt"),pch=c("l","l","l"),col=colors[3:5])
 }
