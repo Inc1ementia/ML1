@@ -171,4 +171,6 @@ gradient <- function(xl,lambda,funcL,funcLL,isHebb=FALSE,weightInit=randomWeight
 
 ![SGradient2](SGradient2.png)
 
+![SGradientQ](SGradientQ.png)
+
 [К меню](https://github.com/Inc1ementia/ML1)
