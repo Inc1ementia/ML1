@@ -93,6 +93,7 @@ gradient <- function(xl,lambda,funcL,funcLL,rule,weightInit=randomWeight) {
   Qprev <- array(Q-100.0,10)   #массив для проверки нормализации эмпирического риска
   class <- sample(c(-1,1),1)    #один из случайных классов, для чередования
   steps <- 0
+  QList <- Q
   while (TRUE) {
     steps <- steps+1
     if (rule=="H") {   #для правила Хэбба берём только плохие
@@ -110,15 +111,16 @@ gradient <- function(xl,lambda,funcL,funcLL,rule,weightInit=randomWeight) {
     }
     w <- w-nu*step(w,xl[obj, ],funcLL)   #и делаем градиентный спуск
     Q <- (1-lambda)*Q+lambda*eps    #пересчитываем значение эмперического риска
+    QList <- c(QList,Q)
     class <- -class    #меняем класс на противоположный
     if (abs(mean(Qprev)-Q)<1e-3) {   #эмпирический риск стабилизировался
       break
     } else {
       Qprev <- c(Q,Qprev[1:9])
     }
-    if (steps==10000) break    #слишком много шагов
+    if (steps==149) break    #слишком много шагов
   }
-  return (w)
+  return (c(w,QList))
 }
 
 
@@ -131,12 +133,25 @@ main <- function() {
   colors <- c("pink1","skyblue1","limegreen","firebrick1","darkviolet")
   message <- "Линейные классификаторы ADALINE, правило Хэбба и логистическая регрессия"
   plot(xl[ ,1],xl[ ,2],pch=21,bg=ifelse(xl[ ,4]==1,colors[1],colors[2]),col="black",asp=1,main=message)
-  weight <- gradient(xl,0.1,adalineL,adalineLL,"A")
+  Q <- matrix(0.0,4,150)
+  Q[1, ] <- 1:150
+  result <- gradient(xl,0.1,adalineL,adalineLL,"A")
+  weight <- result[1:3]
+  Q[2,1:(length(result)-3)] <- result[4:length(result)]
   abline(weight[3]/weight[2],-weight[1]/weight[2],col=colors[3],lwd=2,asp=1)
-  weight <- gradient(xl,0.1,hebbL,hebbLL,"H")
+  result <- gradient(xl,0.1,hebbL,hebbLL,"H")
+  weight <- result[1:3]
+  Q[3,1:(length(result)-3)] <- result[4:length(result)]
   abline(weight[3]/weight[2],-weight[1]/weight[2],col=colors[4],lwd=2,asp=1)
-  weight <- gradient(xl,0.1,logisticL,logisticLL,"L")
+  result <- gradient(xl,0.1,logisticL,logisticLL,"L")
+  weight <- result[1:3]
+  Q[4,1:(length(result)-3)] <- result[4:length(result)]
   abline(weight[3]/weight[2],-weight[1]/weight[2],col=colors[5],lwd=2,asp=1)
   legend(0.9,0.4,c("ADALINE","Hebb","LogIt"),pch=c("l","l","l"),col=colors[3:5])
+  message <- "Зависимость Q от числа шагов"
+  plot(Q[1, ],Q[2, ],col=colors[3],asp=1,type="l",main=message,ylab="Q",xlab="шаг")
+  lines(Q[1, ],Q[3, ],col=colors[4],asp=1,type="l")
+  lines(Q[1, ],Q[4, ],col=colors[5],asp=1,type="l")
+  legend(120,max(Q[2:4, ])+10,c("ADALINE","Hebb","LogIt"),pch=c("l","l","l"),col=colors[3:5])
 }
 main()
