@@ -21,3 +21,4 @@
 
 ### Линейные алгоритмы классификации (Linear classifier)
 - [Стохастический градиент](https://github.com/Inc1ementia/ML1/tree/master/Linear%20classifier/SGradient)
+- [SVM](https://github.com/Inc1ementia/ML1/tree/master/Linear%20classifier/SVM)
