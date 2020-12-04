@@ -41,42 +41,7 @@
 
 ### Программная реализация алгоритма
 
-```R
-muHat <- function(xl) {   #считаем значение мю по данным для класса
-  n <- dim(xl)[2]
-  mu <- array(NA,n)
-  for (i in 1:n) {
-    mu[i] <- mean(xl[ ,i])   #по каждой координате берём среднее
-  }
-  return (t(mu))
-}
-  
-  
-sigmaHat <- function(xl1,xl2,mu1,mu2) {   #считаем зачение сигма по данным для класса и полученному мю
-  l <- dim(xl1)[1]
-  ll <- dim(xl2)[1]
-  n <- dim(xl1)[2]
-  sigma <- matrix(0,n,n)
-  for (i in 1:l) {
-    sigma <- sigma+(t(xl1[i, ]-mu1) %*% (xl1[i, ]-mu1))/(l-1)
-  }
-  for (i in 1:ll) {
-    sigma <- sigma+(t(xl2[i, ]-mu2) %*% (xl2[i, ]-mu2))/(ll-1)
-  }
-  return (sigma)
-}
-  
-  
-randomWeight <- function(n) {
-  return (runif(n,min=-0.5/n,max=0.5/n))
-}
-  
-  
-zeroWeight <- function(n) {
-  return (array(0.0,n))
-}
-  
-  
+```R 
 adalineL <- function(w,x) {   #L для ADALINE
   n <- length(w)
   return ((c(w%*%x[1:n])*x[n+1]-1)^2)
@@ -178,6 +143,66 @@ gradient <- function(xl,lambda,funcL,funcLL,rule,weightInit=randomWeight) {
   }
   return (c(w,QList))
 }
+
+##################
+
+  mu1 <- matrix((values[["lastPoint"]])[ ,1],1,2)   #по последнему нажатию строятся матрицы центров классов
+  mu2 <- matrix((values[["lastPoint"]])[ ,2],1,2)
+  lambda1 <- input$domination
+  lambda2 <- 100-lambda1
+  w0 <- log(lambda1/lambda2)   #отношение l1/l2 для логистической регрессии
+  if (!is.null(values[["xl"]])) {   #данные сохранены с прошлого раза
+    xl <- values[["xl"]]
+    xl1 <- xl[which(xl[ ,4]==-1), ]
+    xl2 <- xl[which(xl[ ,4]==1), ]
+    Q <- values[["Q"]]
+    weights <- values[["weights"]]
+  } else {    #генерируем новые данные
+    xl1 <- mvrnorm(100,mu1,values[["sig"]])    #многомерное распределение точек классов
+    xl2 <- mvrnorm(100,mu2,values[["sig"]])
+    xl <- rbind(cbind(xl1,-1),cbind(xl2,1))   #объединяем два множества точек, указав классы
+    xl <- cbind(xl[ ,1:2],-1,xl[ ,3])
+    values[["xl"]] <- xl
+    values[["weights"]] <- NULL
+    values[["Q"]] <- NULL
+  }
+  mu1h <- muHat(xl1)
+  mu2h <- muHat(xl2)
+  sigh <- sigmaHat(xl1,xl2,mu1h,mu2h)
+  x <- seq(0.0,1.0,by=0.01)
+  y <- x
+  if (is.null(values[["weights"]])) {   #нужно заново запустить градиентные спуски
+    Q <- matrix(0.0,4,3000)
+    weights <- matrix(0.0,3,3)
+    Q[1, ] <- 1:3000
+    result <- gradient(xl,0.1,adalineL,adalineLL,"A")
+    weights[1, ] <- result[1:3]
+    Q[2,1:(length(result)-3)] <- result[4:length(result)]
+    result <- gradient(xl,0.1,hebbL,hebbLL,"H")
+    weights[2, ] <- result[1:3]
+    Q[3,1:(length(result)-3)] <- result[4:length(result)]
+    result <- gradient(xl,0.005,logisticL,logisticLL,"L")
+    weights[3, ] <- result[1:3]
+    Q[4,1:(length(result)-3)] <- result[4:length(result)]
+    values[["Q"]] <- Q
+    values[["weights"]] <- weights
+  }
+  zz <- outer(x,y,function(x,y) {1/(1+exp(-(weights[3,1]*x+weights[3,2]*y-weights[3,3]-w0)))})
+  coul <- c(coul1,rev(coul2))
+  message <- "Линейные классификаторы ADALINE, правило Хэбба и логистическая регрессия"
+  filled.contour(   #линии уровней для логистической регрессии
+    x,y,zz,
+    col=coul,
+    main=message,
+    xlab="x",ylab="y",
+    plot.axes={
+      points(xl[ ,1],xl[ ,2],pch=21,bg=colors[ifelse(xl[ ,4]==1,1,2)],col="black",asp=1)   #рисуем сами точки классов
+      abline(weights[1,3]/weights[1,2],-weights[1,1]/weights[1,2],col=colors[3],lwd=2,asp=1)
+      abline(weights[2,3]/weights[2,2],-weights[2,1]/weights[2,2],col=colors[4],lwd=2,asp=1)
+      abline((weights[3,3]+w0)/weights[3,2],-weights[3,1]/weights[3,2],col=colors[5],lwd=2,asp=1)
+      legend(0.88,1,c("ADALINE","Hebb","LogIt"),pch=c("l","l","l"),col=colors[3:5])
+    }
+  )
 ```
 
 ### Результат работы алгоритма с использованием [shiny](https://inc1ementia.shinyapps.io/gradientShiny/)
