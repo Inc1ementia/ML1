@@ -33,48 +33,6 @@ ROC-кривая показывает, что происходит с число
 ### Программная реализация алгоритма
 
 ```R
-muHat <- function(xl) {   #считаем значение мю по данным для класса
-  n <- dim(xl)[2]
-  mu <- array(NA,n)
-  for (i in 1:n) {
-    mu[i] <- mean(xl[ ,i])   #по каждой координате берём среднее
-  }
-  return (t(mu))
-}
-  
-  
-sigmaHat <- function(xl1,xl2,mu1,mu2) {   #считаем зачение сигма по данным для класса и полученному мю
-  l <- dim(xl1)[1]
-  ll <- dim(xl2)[1]
-  n <- dim(xl1)[2]
-  sigma <- matrix(0,n,n)
-  for (i in 1:l) {
-    sigma <- sigma+(t(xl1[i, ]-mu1) %*% (xl1[i, ]-mu1))/(l-1)
-  }
-  for (i in 1:ll) {
-    sigma <- sigma+(t(xl2[i, ]-mu2) %*% (xl2[i, ]-mu2))/(ll-1)
-  }
-  return (sigma)
-}
-  
-  
-randomizeCovMatrix <- function(val) {
-  if (val==1) {   #сферическая матрица
-    d <- sample(1:10,1)
-    values[["sig"]] <- matrix(c(d*0.001,0,0,d*0.001),2,2)
-  } else if (val==2) {   #эллиптическая
-    d <- sample(1:10,2)
-    values[["sig"]] <- matrix(c(d[1]*0.001,0,0,d[2]*0.001),2,2)
-  } else {   #наклонный эллипс
-    d <- sample(1:10,2)
-    int <- floor(sqrt(d[1]*d[2])-0.001)
-    e <- sample(1:int,1)
-    e <- ifelse(sample(1:2,1)==1,1,-1)*e
-    values[["sig"]] <- matrix(c(d[1]*0.001,e*0.001,e*0.001,d[2]*0.001),2,2)
-  }
-}
-  
-  
 quality <- function(w,xl) {  #функция качества
   Q <- 0
   l <- dim(xl)[1]
@@ -121,6 +79,54 @@ buildROC <- function(w,xl) {   #построение ROC-кривой
   values[["ROC"]] <- ROCPnt   #запоминаем параметр ROC-кривой и AUC
   values[["AUC"]] <- AUC
 }
+
+##################
+
+  mu1 <- matrix((values[["lastPoint"]])[ ,1],1,2)   #по последнему нажатию строятся матрицы центров классов
+  mu2 <- matrix((values[["lastPoint"]])[ ,2],1,2)
+  C <- input$Ccoeff
+  if (!is.null(values[["xl"]])) {   #данные сохранены с прошлого раза
+    xl <- values[["xl"]]
+    xl1 <- xl[which(xl[ ,3]==-1), ]
+    xl2 <- xl[which(xl[ ,3]==1), ]
+  } else {    #генерируем новые данные
+    xl1 <- mvrnorm(100,mu1,values[["sig"]])    #многомерное распределение точек классов
+    xl2 <- mvrnorm(100,mu2,values[["sig"]])
+    xl <- rbind(cbind(xl1,-1),cbind(xl2,1))   #объединяем два множества точек, указав классы
+    values[["xl"]] <- xl
+  }
+  mu1h <- muHat(xl1)
+  mu2h <- muHat(xl2)
+  sigh <- sigmaHat(xl1,xl2,mu1h,mu2h)
+  x <- seq(0.0,1.0,by=0.01)
+  y <- x
+  svp <- ksvm(x=xl[ ,1:2],y=xl[ ,3],type="C-svc",kernel="vanilladot",C=C,scaled=c())  #вызов SVM
+  bad <- SVindex(svp)   #индексы точек, ставших опорными
+  w <- colSums(coef(svp)[[1]]*xl[bad,1:2])  #веса
+  w0 <- b(svp)   #и добавочный коэффициент
+  w[3] <- w0
+  message <- paste0("SVM-алгоритм со значением ошибки ",round(quality(w,xl)/dim(xl)[1],7))
+  plot(x,y,main=message,col="white",asp=1)
+  points(xl[-bad,1],xl[-bad,2],pch=21,bg=colors[ifelse(xl[-bad,3]==-1,1,2)],asp=1)
+  points(xl[bad,1],xl[bad,2],pch=21,bg=colors[ifelse(xl[bad,3]==-1,4,5)],asp=1)
+  abline(w0/w[2],-w[1]/w[2],col=colors[3],lwd=1,asp=1)
+  abline((w0+1)/w[2],-w[1]/w[2],lty=2,asp=1)
+  abline((w0-1)/w[2],-w[1]/w[2],lty=2,asp=1)
+  w <- w/w[2]
+  l <- dim(xl)[1]
+  n <- dim(xl)[2]-1
+  d <- 0
+  ind <- 1
+  for (i in 1:l) {   #находим самую дальнюю от прямой точку
+    di <- abs(corr(w,c(xl[i,1:n],-1)))
+    if (di>d) {
+      d <- di
+      ind <- i
+    }
+  }
+  d <- ifelse(corr(w,c(xl[ind,1:n],-1))<0,-1,1)
+  if (d!=xl[ind,n+1]) w <- w*-1   #и если она неправильно классифицируется, то меняем знак прямой
+  buildROC(w,xl)   #построение ROC-кривой
 ```
 
 ### Результат работы алгоритма с использованием [shiny](https://inc1ementia.shinyapps.io/SVMShiny/)
