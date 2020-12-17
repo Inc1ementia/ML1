@@ -10,14 +10,12 @@ EM-алгоритм состоит из итерационного повтор�
 
 E-шаг (expectation):
 
-$$
-{g}_{ij}^{0}:={g}_{ij};\quad {g}_{ij}:=\frac{{w}_{j}\varphi( {x}_{i};{\theta}_{j})}{\sum_{s=1}^{k} {w}_{s}\varphi({x}_{i};{\theta}_{s})} \qquad \forall i = 1, \dots, m; \qquad \forall j = 1, \dots, k
-$$
+<img src="https://render.githubusercontent.com/render/math?math=%7Bg%7D_%7Bij%7D%5E%7B0%7D%3A%3D%7Bg%7D_%7Bij%7D%3B%5Cquad%20%7Bg%7D_%7Bij%7D%3A%3D%5Cfrac%7B%7Bw%7D_%7Bj%7D%5Cvarphi(%20%7Bx%7D_%7Bi%7D%3B%7B%5Ctheta%7D_%7Bj%7D)%7D%7B%5Csum_%7Bs%3D1%7D%5E%7Bk%7D%20%7Bw%7D_%7Bs%7D%5Cvarphi(%7Bx%7D_%7Bi%7D%3B%7B%5Ctheta%7D_%7Bs%7D)%7D%20%5Cqquad%20%5Cforall%20i%20%3D%201%2C%20%5Cdots%2C%20m%3B%20%5Cqquad%20%5Cforall%20j%20%3D%201%2C%20%5Cdots%2C%20k">
+
 M-шаг (maximization): 
 
-$$
-{\theta}_{j}:=\arg\max_{\theta}\sum_{i=1}^{m} {g}_{ij}\ln\varphi( {x}_{i};{\theta});\quad {w}_{j}:=\frac{1}{m}\sum_{i=1}^{m} {g}_{ij} \qquad \forall j = 1,\dots, k
-$$
+<img src="https://render.githubusercontent.com/render/math?math=%7B%5Ctheta%7D_%7Bj%7D%3A%3D%5Carg%5Cmax_%7B%5Ctheta%7D%5Csum_%7Bi%3D1%7D%5E%7Bm%7D%20%7Bg%7D_%7Bij%7D%5Cln%5Cvarphi(%20%7Bx%7D_%7Bi%7D%3B%7B%5Ctheta%7D)%3B%5Cquad%20%7Bw%7D_%7Bj%7D%3A%3D%5Cfrac%7B1%7D%7Bm%7D%5Csum_%7Bi%3D1%7D%5E%7Bm%7D%20%7Bg%7D_%7Bij%7D%20%5Cqquad%20%5Cforall%20j%20%3D%201%2C%5Cdots%2C%20k">
+
 
 ### Программная реализация алгоритма
 
