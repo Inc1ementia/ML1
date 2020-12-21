@@ -32,8 +32,7 @@ RBFClassifier <- function(x,theta,lambda) {   #классификация RBF-с
     classes[theta[j,1]] <- classes[theta[j,1]]+phi(x,mu,sigma)*theta[j,2]   #переход от первого слоя сети ко второму
   }
   classes <- classes*lambda*Pi   #третий слой сети
-  class <- which.max(classes)   #выбирается argmax
-  return (class)
+  return (classes)
 }
 
 
@@ -139,26 +138,35 @@ EMfixedK <- function(xl,k,theta,delta) {
 
 ##################
 
-main <- function(objects,lambda) {
+main <- function(lambda) {
   colors <- c("pink1","gold","skyblue1")
-  mu1 <- c(5,0)    #построение модельной выборки
-  mu2 <- c(5,4)
-  mu3 <- c(-1,1)
-  mu4 <- c(2,3)
-  sigma1 <- matrix(c(4,0,0,1)/10,2,2)
-  sigma2 <- matrix(c(1,1,1,4)/10,2,2)
-  sigma3 <- matrix(c(2,-1,-1,2)/10,2,2)
-  sigma4 <- matrix(c(6,2,2,3)/10,2,2)
-  xl1 <- mvrnorm(120,mu1,sigma1)
-  xl2 <- mvrnorm(120,mu2,sigma2)
-  xl3 <- mvrnorm(40,mu3,sigma3)
-  xl4 <- mvrnorm(200,mu4,sigma4)
-  xl <- rbind(cbind(xl1,1),cbind(xl2,2),cbind(xl3,2),cbind(xl4,3))
-  theta <- RBF(xl,5,5,0.1)
-  message <- "Классификация с помощью RBF-сети"
-  plot(xl[ ,1],xl[ ,2],pch=21,col=colors[xl[ ,3]],bg=colors[xl[ ,3]],asp=1,main=message,xlab="x",ylab="y")
+  mu1 <- c(5,0)
+  mu2 <- c(6,3)
+  mu3 <- c(2,4)
+  mu4 <- c(-1,2)
+  mu5 <- c(0,-1)
+  mu6 <- c(1,5)
+  mu7 <- c(2,1)
+  sigma1 <- matrix(c(1,0,0,1)/10,2,2)
+  sigma2 <- matrix(c(1,0,0,5)/10,2,2)
+  sigma3 <- matrix(c(3,-1,-1,1)/10,2,2)
+  sigma4 <- matrix(c(2,1,1,5)/10,2,2)
+  sigma5 <- matrix(c(4,-2,-2,3)/10,2,2)
+  sigma6 <- matrix(c(3,2,2,3)/10,2,2)
+  sigma7 <- matrix(c(4,0,0,2)/10,2,2)
+  xl1 <- mvrnorm(150,mu1,sigma1)
+  xl2 <- mvrnorm(150,mu2,sigma2)
+  xl3 <- mvrnorm(150,mu3,sigma3)
+  xl4 <- mvrnorm(100,mu4,sigma4)
+  xl5 <- mvrnorm(100,mu5,sigma5)
+  xl6 <- mvrnorm(150,mu6,sigma6)
+  xl7 <- mvrnorm(100,mu7,sigma7)
+  xl <- rbind(cbind(xl1,1),cbind(xl2,1),cbind(xl3,2),cbind(xl4,3),cbind(xl5,3),cbind(xl6,2),cbind(xl7,3))
+  theta <- RBF(xl,7,5,0.05)
+  message <- "Разбиение выборки на сгустки"
+  plot(xl[ ,1],xl[ ,2],pch=21,col="black",bg=colors[xl[ ,3]],asp=1,main=message,xlab="x",ylab="y")
   k <- dim(theta)[1]
-  x <- seq(-10,10,by=0.02)
+  x <- seq(-8,8,by=0.05)
   y <- x
   for (i in 1:k) {   #для каждого подможества строим линию уровня, увеличивая толщину линии в зависимости от значимости
     mu <- matrix(theta[i,3:4],1,2)
@@ -169,18 +177,74 @@ main <- function(objects,lambda) {
     if (theta[i,2]>=0.05)
       contour(x,y,levelLine(mu,sigma,x,y),lwd=sick,col=colors[theta[i,1]],asp=1,levels=0.01,drawlabels=FALSE,add=TRUE)
   }
-  k <- dim(objects)[1]
-  for (i in 1:k) {    #классификация некоторого набора объектов с помощью RBF-сети
-    class <- RBFClassifier(objects[i, ],theta,lambda)
-    points(objects[i,1],objects[i,2],pch=c(21,22,24)[class],col="black",bg=colors[class],asp=1)
+  message <- "Карта классификации с помощью RBF-сети"
+  x <- seq(-4,8,by=0.1)
+  y <- x
+  xx <- rep(-4,length(x)-1)
+  stpX <- (x[2]-x[1])
+  xx[1] <- xx[1]+stpX/2
+  for (i in 2:length(xx))
+    xx[i] <- xx[i-1]+stpX
+  yy <- xx
+  dat <- array(NA,c(length(xx),length(yy),3))
+  res <- matrix(NA,length(xx),length(yy))
+  a <- 1
+  maxProb <- c(0.0,0.0,0.0)
+  for (i in xx) {   #для каждой точки графика определяются результаты работы РБФ-сети
+    print(i)
+    b <- 1
+    for (j in yy) {
+      class <- RBFClassifier(c(i,j),theta,lambda)
+      sm <- sum(class)
+      dat[a,b, ] <- class
+      q <- which.max(class)
+      if (maxProb[q]<class[q]) maxProb[q] <- class[q]
+      b <- b+1
+    }
+    a <- a+1
+  }
+  a <- 1   #для всех клеток определяется яркость в зависимости от доминирующего класса
+  for (i in xx) {
+    b <- 1
+    for (j in yy) {
+      sm <- dat[a,b, ]
+      q <- which.max(sm)
+      sm <- sm/sum(sm)   #данные отображаются на отрезок [0,1]
+      redRatio <- min(sum(sm*c(255,255,135))/255,1.0)
+      greenRatio <- min(sum(sm*c(181,215,206))/255,1.0)
+      blueRatio <- min(sum(sm*c(197,0,255))/255,1.0)
+      res[a,b] <- rgb(redRatio,greenRatio,blueRatio,0.25+0.75*sqrt(dat[a,b,q]/maxProb[q]))
+      #функция sqrt взята как более быстрорастущая, чем линейная, тем самым даже средней значимости точки будут ярче
+      b <- b+1
+    }
+    a <- a+1
+  }
+  plot(0,0,type="n",xlim=c(-4,8),ylim=c(-4,8),xlab="x",ylab="y",main=message,asp=1)
+  for (i in 2:length(x))
+    for (j in 2:length(y)) {
+      coors <- c(x[i-1],y[j-1],x[i],y[j])
+      rect(coors[1],coors[2],coors[3],coors[4],col=res[i-1,j-1],border=NA)
+    }
+  x <- seq(-4,8,by=0.05)
+  y <- x
+  for (i in 1:k) {   #для каждого подможества строим линию уровня, увеличивая толщину линии в зависимости от значимости
+    mu <- matrix(theta[i,3:4],1,2)
+    sigma <- matrix(theta[i,5:8],2,2)
+    sick <- 1
+    if (theta[i,2]>0.2) sick <- 2
+    if (theta[i,2]>0.4) sick <- 3
+    if (theta[i,2]>=0.05)
+      contour(x,y,levelLine(mu,sigma,x,y),lwd=sick,col="gray40",asp=1,levels=0.01,drawlabels=FALSE,add=TRUE)
   }
 }
 ```
 
 ### Результат работы алгоритма
 
-Результатом работы алгоритма будет следующий график:
+Результатом работы алгоритма будут следующие графики:
 
-![EM](EM.png)
+![EM1](EM1.png)
+
+![EM2](EM2.png)
 
 [К меню](https://github.com/Inc1ementia/ML1)
